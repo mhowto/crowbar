@@ -2,7 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 #include "crowbar.h"
-#include "y.tab.h"
+#include "parser.tab.h"
+#include "error.h"
 
 int yywrap(void)
 {
@@ -54,25 +55,25 @@ int yywrap(void)
 }
 
 <INITIAL>([1-9][0-9]*)|"0" {
-	Expression *expression = new IntLiteral(yytext);
+	Expression *expression = new Primitive(PrimitiveType::INT_LITERAL, yytext);
 	yylval.expression = expression;
 	return INT_LITERAL;
 }
 
 <INITIAL>[0-9]+\.[0-9]+ {
-	Expression *expression = new FloatLiteral(yytext);
+	Expression *expression = new Primitive(PrimitiveType::DOUBLE_LITERAL, yytext);
 	yylval.expression = expression;
 	return DOUBLE_LITERAL;
 }
 
-<INITIAL>\"" {
-	crb_open_string_literal();
+<INITIAL>\" {
+	StringLiteral::createStringLiteral();
 	BEGIN STRING_LITERAL_STATE;
 }
 
 <INITIAL>[ \t] ;
 <INITIAL>\n {
-	increment_line_number();
+	LexerUtil::increaseLineNumber();
 }
 <INITIAL># {
 	BEGIN COMMENT;
@@ -84,32 +85,34 @@ int yywrap(void)
 		buf[0] = yytext[0];
 		buf[1] = '\0';
 	} else {
-		sprintf(buf, "0x%02x", (unsigned char) yytex[0]);
+		sprintf(buf, "0x%02x", (unsigned char) yytext[0]);
 	}
 
-	crb_compile_error(CHARACTER_INVALID_ERR,
-					  STRING_MESSAGE_ARGUMENT, "bad_char", buf,
-					  MESSAGE_ARGUMENT_END;
+	generateCompileError(CompileError::CHARACTER_INVALID_ERR,
+					  MessageArgumentType::STRING_MESSAGE_ARGUMENT, "bad_char", buf,
+					  MessageArgumentType::MESSAGE_ARGUMENT_END);
 }
 
 <COMMENT>\n     {
-    increment_line_number();
+    LexerUtil::increaseLineNumber();
     BEGIN INITIAL;
 }
 <COMMENT>.      ;
 <STRING_LITERAL_STATE>\"        {
-    Expression *expression = new StringLiteral(crb_close_literal());
+    Expression *expression = new Primitive(PrimitiveType::STRING_LITERAL, StringLiteral::closeStringLiteral());
     yylval.expression = expression;
     BEGIN INITIAL;
     return STRING_LITERAL;
 }
 <STRING_LITERAL_STATE>\n        {
-    crb_add_string_literal('\n');
-    increment_line_number();
+    //crb_add_string_literal('\n');
+    //increment_line_number();
+	StringLiteral::addToString('\n');
+	LexerUtil::increaseLineNumber();
 }
-<STRING_LITERAL_STATE>\\\"      crb_add_string_literal('"');
-<STRING_LITERAL_STATE>\\n       crb_add_string_literal('\n');
-<STRING_LITERAL_STATE>\\t       crb_add_string_literal('\t');
-<STRING_LITERAL_STATE>\\\\      crb_add_string_literal('\\');
-<STRING_LITERAL_STATE>.         crb_add_string_literal(yytext[0]);
+<STRING_LITERAL_STATE>\\\"      StringLiteral::addToString('"');
+<STRING_LITERAL_STATE>\\n       StringLiteral::addToString('\n');
+<STRING_LITERAL_STATE>\\t       StringLiteral::addToString('\t');
+<STRING_LITERAL_STATE>\\\\      StringLiteral::addToString('\\');
+<STRING_LITERAL_STATE>.         StringLiteral::addToString(yytext[0]);
 %%
