@@ -526,6 +526,7 @@ char *yytext;
 #line 2 "lexer.l"
 #include <stdio.h>
 #include <string.h>
+#include "CRB.h"
 #include "crowbar.h"
 #include "parser.tab.h"
 #include "error.h"
@@ -536,7 +537,7 @@ int yywrap(void)
 }
 
 
-#line 540 "lexer.flex.cpp"
+#line 541 "lexer.flex.cpp"
 
 #define INITIAL 0
 #define COMMENT 1
@@ -588,7 +589,6 @@ void yyset_lineno (int line_number  );
 
 #ifndef YY_SKIP_YYWRAP
 #ifdef __cplusplus
-//extern "C" int yywrap (void );
 extern int yywrap (void );
 #else
 extern int yywrap (void );
@@ -718,9 +718,9 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 17 "lexer.l"
+#line 18 "lexer.l"
 
-#line 723 "lexer.flex.cpp"
+#line 724 "lexer.flex.cpp"
 
 	if ( !(yy_init) )
 		{
@@ -805,198 +805,198 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 18 "lexer.l"
+#line 19 "lexer.l"
 return FUNCTION;
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 19 "lexer.l"
+#line 20 "lexer.l"
 return IF;
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 20 "lexer.l"
+#line 21 "lexer.l"
 return ELSE;
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 21 "lexer.l"
+#line 22 "lexer.l"
 return ELSIF;
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 22 "lexer.l"
+#line 23 "lexer.l"
 return WHILE;
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 23 "lexer.l"
+#line 24 "lexer.l"
 return FOR;
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 24 "lexer.l"
+#line 25 "lexer.l"
 return RETURN_T;
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 25 "lexer.l"
+#line 26 "lexer.l"
 return BREAK;
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 26 "lexer.l"
+#line 27 "lexer.l"
 return CONTINUE;
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 27 "lexer.l"
+#line 28 "lexer.l"
 return NULL_T;
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 28 "lexer.l"
+#line 29 "lexer.l"
 return TRUE_T;
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 29 "lexer.l"
+#line 30 "lexer.l"
 return FALSE_T;
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 30 "lexer.l"
+#line 31 "lexer.l"
 return GLOBAL_T;
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 31 "lexer.l"
+#line 32 "lexer.l"
 return LP;
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 32 "lexer.l"
+#line 33 "lexer.l"
 return RP;
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 33 "lexer.l"
+#line 34 "lexer.l"
 return LC;
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 34 "lexer.l"
+#line 35 "lexer.l"
 return RC;
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 35 "lexer.l"
+#line 36 "lexer.l"
 return SEMICOLON;
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 36 "lexer.l"
+#line 37 "lexer.l"
 return COMMA;
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 37 "lexer.l"
+#line 38 "lexer.l"
 return LOGICAL_AND;
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 38 "lexer.l"
+#line 39 "lexer.l"
 return LOGICAL_OR;
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 39 "lexer.l"
+#line 40 "lexer.l"
 return ASSIGN;
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 40 "lexer.l"
+#line 41 "lexer.l"
 return EQ;
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 41 "lexer.l"
+#line 42 "lexer.l"
 return NE;
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 42 "lexer.l"
+#line 43 "lexer.l"
 return GT;
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 43 "lexer.l"
+#line 44 "lexer.l"
 return GE;
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 44 "lexer.l"
+#line 45 "lexer.l"
 return LT;
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 45 "lexer.l"
+#line 46 "lexer.l"
 return LE;
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 46 "lexer.l"
+#line 47 "lexer.l"
 return ADD;
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 47 "lexer.l"
+#line 48 "lexer.l"
 return SUB;
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 48 "lexer.l"
+#line 49 "lexer.l"
 return MUL;
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 49 "lexer.l"
+#line 50 "lexer.l"
 return DIV;
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 50 "lexer.l"
+#line 51 "lexer.l"
 return MOD;
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 52 "lexer.l"
+#line 53 "lexer.l"
 {
-	yylval.identifier = (yytext);
+	yylval.identifier = dupYYText(yytext);
 	return IDENTIFIER;
 }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 57 "lexer.l"
+#line 58 "lexer.l"
 {
-	Expression *expression = new Primitive(PrimitiveType::INT_LITERAL, yytext);
+	Expression *expression = new Primitive(PrimitiveType::INT_LITERAL, dupYYText(yytext));
 	yylval.expression = expression;
 	return INT_LITERAL;
 }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 63 "lexer.l"
+#line 64 "lexer.l"
 {
-	Expression *expression = new Primitive(PrimitiveType::DOUBLE_LITERAL, yytext);
+	Expression *expression = new Primitive(PrimitiveType::DOUBLE_LITERAL, dupYYText(yytext));
 	yylval.expression = expression;
 	return DOUBLE_LITERAL;
 }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 69 "lexer.l"
+#line 70 "lexer.l"
 {
 	StringLiteral::createStringLiteral();
 	BEGIN STRING_LITERAL_STATE;
@@ -1004,27 +1004,27 @@ YY_RULE_SETUP
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 74 "lexer.l"
+#line 75 "lexer.l"
 ;
 	YY_BREAK
 case 39:
 /* rule 39 can match eol */
 YY_RULE_SETUP
-#line 75 "lexer.l"
+#line 76 "lexer.l"
 {
 	LexerUtil::increaseLineNumber();
 }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 78 "lexer.l"
+#line 79 "lexer.l"
 {
 	BEGIN COMMENT;
 }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 81 "lexer.l"
+#line 82 "lexer.l"
 {
 	char buf[LINE_BUF_SIZE];
 
@@ -1043,7 +1043,7 @@ YY_RULE_SETUP
 case 42:
 /* rule 42 can match eol */
 YY_RULE_SETUP
-#line 96 "lexer.l"
+#line 97 "lexer.l"
 {
     LexerUtil::increaseLineNumber();
     BEGIN INITIAL;
@@ -1051,12 +1051,12 @@ YY_RULE_SETUP
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 100 "lexer.l"
+#line 101 "lexer.l"
 ;
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 101 "lexer.l"
+#line 102 "lexer.l"
 {
     Expression *expression = new Primitive(PrimitiveType::STRING_LITERAL, StringLiteral::closeStringLiteral());
     yylval.expression = expression;
@@ -1067,7 +1067,7 @@ YY_RULE_SETUP
 case 45:
 /* rule 45 can match eol */
 YY_RULE_SETUP
-#line 107 "lexer.l"
+#line 108 "lexer.l"
 {
     //crb_add_string_literal('\n');
     //increment_line_number();
@@ -1077,35 +1077,35 @@ YY_RULE_SETUP
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 113 "lexer.l"
+#line 114 "lexer.l"
 StringLiteral::addToString('"');
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 114 "lexer.l"
+#line 115 "lexer.l"
 StringLiteral::addToString('\n');
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 115 "lexer.l"
+#line 116 "lexer.l"
 StringLiteral::addToString('\t');
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 116 "lexer.l"
+#line 117 "lexer.l"
 StringLiteral::addToString('\\');
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 117 "lexer.l"
+#line 118 "lexer.l"
 StringLiteral::addToString(yytext[0]);
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 118 "lexer.l"
+#line 119 "lexer.l"
 ECHO;
 	YY_BREAK
-#line 1108 "lexer.flex.cpp"
+#line 1109 "lexer.flex.cpp"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(COMMENT):
 case YY_STATE_EOF(STRING_LITERAL_STATE):
@@ -2101,6 +2101,6 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 117 "lexer.l"
+#line 118 "lexer.l"
 
 

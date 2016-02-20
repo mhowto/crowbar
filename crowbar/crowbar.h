@@ -38,7 +38,7 @@ class Statement : public Node {};
 
 class Block;
 
-class TranslationUnit {
+class TranslationUnit :public Node{
 public:
     void push(Node* definition_or_statement) {
         this->_definitions_or_statements.push_back(definition_or_statement);
@@ -98,7 +98,13 @@ class PrimaryExpression : public Expression {
 class FunctionCall : public PrimaryExpression {
 public:
     FunctionCall(std::string name, std::vector<Expression*> arguments) 
-        : _name(name), _arguments(arguments) {}
+        : _name(name), _arguments(arguments) {
+        std::cout << "name:" << name << std::endl;
+    }
+    FunctionCall(char* name, std::vector<Expression*> arguments) 
+        : _name(name), _arguments(arguments) {
+        delete name;
+    }
     FunctionCall(std::string name) : _name(name) {}
 private:
     std::string _name;
@@ -118,6 +124,10 @@ class Primitive : public PrimaryExpression {
 public:
     Primitive(PrimitiveType type, std::string literal)
         : _type(type), _literal(literal) {}
+    Primitive(PrimitiveType type, char* literal)
+        : _type(type), _literal(literal) {
+        delete literal;
+    }
     Primitive(PrimitiveType type)
         : _type(type) {}
 private:
@@ -245,7 +255,7 @@ public:
     static const char* getStringLiteral();
     static void addToString(char ch);
     static void createStringLiteral();
-    static const char* closeStringLiteral();
+    static char* closeStringLiteral();
 private:
     static std::stringstream ss;
 };

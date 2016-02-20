@@ -30,6 +30,9 @@
     <ClInclude Include="parser.tab.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="interpreter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="string.cpp">
@@ -41,9 +44,6 @@
     <ClCompile Include="lexer_util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="interface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -51,6 +51,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="parser.tab.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="interpreter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CRB.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

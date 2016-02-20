@@ -91,7 +91,7 @@ extern int yydebug;
 typedef union YYSTYPE
 {
 /* Line 2058 of yacc.c  */
-#line 8 "parser.y"
+#line 10 "parser.y"
 
 	TranslationUnit* translation_unit;
 	Node* node;

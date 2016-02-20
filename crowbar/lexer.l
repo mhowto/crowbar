@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
 #include <string.h>
+#include "CRB.h"
 #include "crowbar.h"
 #include "parser.tab.h"
 #include "error.h"
@@ -50,18 +51,18 @@ int yywrap(void)
 <INITIAL>"%"            return MOD;
 
 <INITIAL>[A-Za-z_][A-Za-z_0-9]* {
-	yylval.identifier = (yytext);
+	yylval.identifier = dupYYText(yytext);
 	return IDENTIFIER;
 }
 
 <INITIAL>([1-9][0-9]*)|"0" {
-	Expression *expression = new Primitive(PrimitiveType::INT_LITERAL, yytext);
+	Expression *expression = new Primitive(PrimitiveType::INT_LITERAL, dupYYText(yytext));
 	yylval.expression = expression;
 	return INT_LITERAL;
 }
 
 <INITIAL>[0-9]+\.[0-9]+ {
-	Expression *expression = new Primitive(PrimitiveType::DOUBLE_LITERAL, yytext);
+	Expression *expression = new Primitive(PrimitiveType::DOUBLE_LITERAL, dupYYText(yytext));
 	yylval.expression = expression;
 	return DOUBLE_LITERAL;
 }

@@ -8,8 +8,8 @@ const char* StringLiteral::getStringLiteral()
 }
 
 void StringLiteral::addToString(char ch)
-{
-    ss << ch;
+{ 
+    ss << ch; 
 }
 
 void StringLiteral::createStringLiteral()
@@ -18,10 +18,12 @@ void StringLiteral::createStringLiteral()
     ss.clear();
 }
 
-const char* StringLiteral::closeStringLiteral()
+char* StringLiteral::closeStringLiteral()
 {
-    const char* str = ss.str().c_str();
+    std::string temp(ss.str());
     ss.str(std::string());
     ss.clear();
+    char* str = new char[temp.length() + 1];
+    std::strcpy(str, temp.c_str());
     return str;
 }

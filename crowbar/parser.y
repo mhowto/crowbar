@@ -1,5 +1,7 @@
 %{
 #include "crowbar.h"
+#include "interpreter.h"
+#include "CRB.h"
 
 extern int yylex();
 void yyerror(const char *s) { printf("ERROR: %s\n", s); }
@@ -53,11 +55,13 @@ translation_unit
 	{
 		$$ = new TranslationUnit();
 		$$->push($1);
+		interpreter = Interpreter::createInterpreter($$);
 	}
 	| translation_unit definition_or_statement
 	{
 		$$ = $1;
 		$$->push($2);
+		interpreter = Interpreter::createInterpreter($$);
 	}
 	;
 
@@ -217,6 +221,8 @@ unary_expression
 primary_expression
 	: IDENTIFIER LP argument_list RP
 	{
+	std::cout << $1 << std::endl;
+	std::cout << $3 << std::endl;
 		$$ = new FunctionCall($1, *$3);
 	}
 	| IDENTIFIER LP RP
