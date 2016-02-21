@@ -152,9 +152,11 @@
     <ClInclude Include="error.h" />
     <ClInclude Include="interpreter.h" />
     <ClInclude Include="parser.tab.h" />
+    <ClInclude Include="vistor.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CRB.cpp" />
+    <ClCompile Include="crowbar.cpp" />
     <ClCompile Include="interface.cpp" />
     <ClCompile Include="error.cpp" />
     <ClCompile Include="interpreter.cpp" />

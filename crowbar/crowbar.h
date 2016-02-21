@@ -28,9 +28,12 @@ enum class UnaryOperator
     NOT, NEGATIVE
 };
 
+class Visitor;
+
 class Node {
 public:
     virtual ~Node() {}
+    virtual void accept(Visitor&) = 0;
 };
 
 class Expression : public Node{};
@@ -43,6 +46,8 @@ public:
     void push(Node* definition_or_statement) {
         this->_definitions_or_statements.push_back(definition_or_statement);
     }
+
+    virtual void accept(Visitor& visitor) override;
 private:
     std::vector<Node*> _definitions_or_statements;
 };
@@ -55,6 +60,7 @@ public:
     Function(std::string name, Block* block)
         : _name(name), _block(block) {}
 
+    virtual void accept(Visitor& visitor) override;
 private:
     std::string _name;
     std::vector<std::string> _parameter_list;
@@ -67,6 +73,7 @@ public:
     AssignExpression(std::string identifier, Expression* expression)
         : _identifier(identifier), _expression(expression) {}
 
+    virtual void accept(Visitor& visitor) override;
 private:
     std::string _identifier;
     Expression* _expression;
@@ -76,6 +83,7 @@ class BinaryExpression : public Expression {
 public:
     BinaryExpression(BinaryOperator op, Expression* left, Expression* right)
         :_op(op), _left(left), _right(right) {}
+    virtual void accept(Visitor& visitor) override;
 private:
     BinaryOperator _op;
     Expression* _left;
@@ -87,6 +95,7 @@ public:
     UnaryExpression(UnaryOperator op, Expression* expr)
         :_op(op), _expr(expr) {}
 
+    virtual void accept(Visitor& visitor) override;
 private:
     UnaryOperator _op;
     Expression* _expr;
@@ -106,6 +115,7 @@ public:
         delete name;
     }
     FunctionCall(std::string name) : _name(name) {}
+    virtual void accept(Visitor& visitor) override;
 private:
     std::string _name;
     std::vector<Expression*> _arguments;
@@ -130,6 +140,7 @@ public:
     }
     Primitive(PrimitiveType type)
         : _type(type) {}
+    virtual void accept(Visitor& visitor) override;
 private:
     PrimitiveType _type;
     std::string _literal;
@@ -139,6 +150,7 @@ class IdentifierExpression : public PrimaryExpression {
 public:
     IdentifierExpression(std::string identifier)
         : _identifier(identifier) {}
+    virtual void accept(Visitor& visitor) override;
 private:
     std::string _identifier;
 };
@@ -152,6 +164,7 @@ class ExpressionStatement : public Statement {
 public:
     ExpressionStatement(Expression* expression)
         : _expression(expression) {}
+    virtual void accept(Visitor& visitor) override;
 private:
     Expression* _expression;
 };
@@ -160,6 +173,7 @@ class GlobalStatement : public Statement {
 public:
     GlobalStatement(std::vector<std::string> identifiers)
         : _identifier_list(identifiers) {}
+    virtual void accept(Visitor& visitor) override;
 private:
     std::vector<std::string> _identifier_list;
 };
@@ -169,6 +183,7 @@ class Block : public Statement {
 public:
     Block() {}
     Block(StatementList list) : _list(list) {}
+    virtual void accept(Visitor& visitor) override;
 private:
     StatementList _list;
 };
@@ -177,6 +192,7 @@ class ElsIf : public Statement {
 public:
     ElsIf(Expression* expression, Block* block)
         : _expression(expression), _block(block) {}
+    virtual void accept(Visitor& visitor) override;
 private:
     Expression* _expression;
     Block* _block;
@@ -185,6 +201,7 @@ private:
 class ElsIfList : public Statement {
 public:
     ElsIfList(ElsIf* els_if, ElsIfList* elsif_list) : _els_if(els_if), _elsif_list(elsif_list) {}
+    virtual void accept(Visitor& visitor) override;
 private:
     ElsIf* _els_if;
     ElsIfList* _elsif_list;
@@ -196,6 +213,7 @@ public:
         : _expression(expression), _block(block), _els_if_list(els_if_list) {}
     IfElseIfStatement(Expression *expression, Block* block, ElsIfList* els_if_list, Block* else_block)
         : _expression(expression), _block(block), _els_if_list(els_if_list), _else_block(else_block) {}
+    virtual void accept(Visitor& visitor) override;
 private:
     Expression* _expression;
     Block* _block;
@@ -209,6 +227,7 @@ public:
         : _expression(expression), _block(block) {}
     IfStatement(Expression* expression, Block* block, Block *else_block)
         : _expression(expression), _block(block), _else_block(else_block) {}
+    virtual void accept(Visitor& visitor) override;
 private:
     Expression* _expression;
     Block* _block;
@@ -219,6 +238,7 @@ class WhileStatement : public Statement {
 public:
     WhileStatement(Expression* expression, Block* block)
         : _expression(expression), _block(block) {}
+    virtual void accept(Visitor& visitor) override;
 private:
     Expression* _expression;
     Block* _block;
@@ -230,6 +250,7 @@ public:
         Expression *action_expression, Block* block)
         : _init_expression(init_expression), _cond_expression(cond_expression),
           _action_expression(action_expression), _block(block) {}
+    virtual void accept(Visitor& visitor) override;
 private:
     Expression *_init_expression, *_cond_expression, *_action_expression;
     Block* _block;
@@ -239,14 +260,17 @@ class ReturnStatement : public Statement {
 public:
     ReturnStatement(Expression *expression)
         : _expression(expression) {}
+    virtual void accept(Visitor& visitor) override;
 private:
     Expression *_expression;
 };
 
 class BreakStatement : public Statement {
+    virtual void accept(Visitor& visitor) override;
 };
 
 class ContinueStatement : public Statement {
+    virtual void accept(Visitor& visitor) override;
 };
 
 /* string.cpp */
