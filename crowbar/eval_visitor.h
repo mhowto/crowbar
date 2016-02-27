@@ -4,6 +4,10 @@
 #include "vistor.h"
 #include "CRB.h"
 #include <map>
+#include <set>
+
+typedef std::map<std::string, CRBValue*> VariableEnv;
+typedef std::map<std::string, Function*> FunctionEnv;
 
 class EvalVisitor : public Visitor {
 public:
@@ -27,19 +31,24 @@ public:
     virtual void visit(ReturnStatement*) override;
     virtual void visit(BreakStatement*) override;
     virtual void visit(ContinueStatement*) override;
-private:
-    CRBValue* lastValue; // 上一次eval得到的值
 
-    // 局部变量表和局部函数表
-    std::map<std::string, CRBValue*> localVariableEnv;
-    std::map<std::string, Function*> localFunctionEnv;
+    CRBValue* getResult() {
+        return result;
+    }
+
+private:
+    CRBValue* result; // 上一次eval得到的值
+
+    // 局部变量表
+    std::vector<VariableEnv> localVariableEnvs;
+    //std::map<std::string, CRBValue*> localVariableEnv;
 
     // 全局变量表和全局函数表
-    std::map<std::string, CRBValue*> globalVariableEnv;
-    std::map<std::string, Function*> globalFunctionEnv;
+    VariableEnv globalVariableEnv;
+    FunctionEnv globalFunctionEnv;
 
-    // 函数运行的参数
-    std::map<std::string, CRBValue*> arguments;
+    // 用于记录函数中的全局变量表
+    std::set<std::string> globalVariableSet;
 
     CRBValue* getVariable(std::string variableName);
     Function* getFunction(std::string functionName);

@@ -60,6 +60,18 @@ public:
     Function(std::string name, Block* block)
         : _name(name), _block(block) {}
 
+    std::string getName() {
+        return _name;
+    }
+
+    std::vector<std::string> getParamerterList() {
+        return _parameter_list;
+    }
+
+    Block* getBlock() {
+        return _block;
+    }
+
     virtual void accept(Visitor& visitor) override;
 private:
     std::string _name;
@@ -116,6 +128,14 @@ public:
     }
     FunctionCall(std::string name) : _name(name) {}
     virtual void accept(Visitor& visitor) override;
+
+    std::string getName() {
+        return _name;
+    }
+
+    std::vector<Expression*> getArguments() {
+        return _arguments;
+    }
 private:
     std::string _name;
     std::vector<Expression*> _arguments;
