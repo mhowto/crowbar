@@ -39,7 +39,7 @@ public:
 private:
     CRBValue* result; // 上一次eval得到的值
 
-    // 局部变量表
+    // 堆栈形似的局部变量表
     std::vector<VariableEnv> localVariableEnvs;
     //std::map<std::string, CRBValue*> localVariableEnv;
 
@@ -47,8 +47,8 @@ private:
     VariableEnv globalVariableEnv;
     FunctionEnv globalFunctionEnv;
 
-    // 用于记录函数中的全局变量表
-    std::set<std::string> globalVariableSet;
+    // 用于记录函数中的全局变量表, 也为堆栈形式
+    std::vector<std::set<std::string> > globalVariableDefinitions;
 
     CRBValue* getVariable(std::string variableName);
     Function* getFunction(std::string functionName);

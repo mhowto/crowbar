@@ -1,11 +1,17 @@
 #include "eval_visitor.h"
 
 CRBValue* EvalVisitor::getVariable(std::string variableName) {
-    if (localVariableEnv.find(variableName) != localVariableEnv.end()) {
-        return localVariableEnv[variableName];
+    if (!localVariableEnvs.empty()) {
+        VariableEnv localEnv = localVariableEnvs[localVariableEnvs.size() - 1];
+        if (localEnv.find(variableName) != localEnv.end()) {
+            return localEnv[variableName];
+        }
     }
-    if (globalVariableEnv.find(variableName) != globalVariableEnv.end()) {
-        return globalVariableEnv[variableName];
+    if (!globalVariableDefinitions.empty()) {
+        std::set<std::string> globalNames = globalVariableDefinitions[globalVariableDefinitions.size() - 1];
+        if (globalNames.find(variableName) != globalNames.end()) {
+            return globalVariableEnv[variableName];
+        }
     }
     return nullptr;
 }
