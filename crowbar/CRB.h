@@ -22,40 +22,68 @@ enum class ValueType {
     StringValue = 1,
     IntValue,
     DoubleValue,
-    NativePointer
+    NativePointer,
+    BoolValue
+};
+
+enum class StatementResultType {
+    NormalStatementResult = 1,
+    ReturnStatementResult,
+    BreakStatementResult,
+    ContinueStatementResult,
 };
 
 class CRBValue {
 public:
-    ValueType _type;
-    CRBValue(ValueType type): _type(type) {}
+    ValueType type;
+    CRBValue(ValueType _type): type(_type) {}
     virtual ~CRBValue() = 0;
+};
+
+class StatementResult {
+public:
+    StatementResultType type;
+    CRBValue* returnValue;
+
+    StatementResult(StatementResultType _type) : type(_type) {}
+    StatementResult(StatementResultType _type, CRBValue* value) : type(_type), returnValue(value) {}
+
+    ~StatementResult() {
+        delete returnValue;
+    }
 };
 
 class CRBStringValue : public CRBValue {
 public:
-    std::string _value;
-    CRBStringValue(std::string value): CRBValue(ValueType::StringValue), _value(value) {}
+    std::string value;
+    CRBStringValue(std::string _value): CRBValue(ValueType::StringValue), value(_value) {}
 };
 
 class CRBIntValue : public CRBValue {
 public:
-    int _value;
-    CRBIntValue(int value): CRBValue(ValueType::IntValue), _value(value) {}
+    int value;
+    CRBIntValue(int _value): CRBValue(ValueType::IntValue), value(_value) {}
 };
 
 class CRBDoubleValue : public CRBValue {
 public:
-    double _value;
-    CRBDoubleValue(double value): CRBValue(ValueType::DoubleValue), _value(value) {}
+    double value;
+    CRBDoubleValue(double _value): CRBValue(ValueType::DoubleValue), value(_value) {}
 };
 
 class CRBNativePointer :public CRBValue {
 public:
-    void *_pointer;
-    std::string _pointerType;
-    CRBNativePointer(std::string pointerType, void* pointer): 
-        CRBValue(ValueType::NativePointer), _pointerType(pointerType), _pointer(pointer) {}
+    void *pointer;
+    std::string pointerType;
+    CRBNativePointer(std::string _pointerType, void* _pointer): 
+        CRBValue(ValueType::NativePointer), pointerType(_pointerType), pointer(_pointer) {}
+};
+
+class CRBBoolValue : public CRBValue {
+public:
+    bool value;
+
+    CRBBoolValue(bool _value) : CRBValue(ValueType::BoolValue), value(_value) {}
 };
 
 

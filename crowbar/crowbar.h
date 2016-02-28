@@ -204,6 +204,11 @@ public:
     Block() {}
     Block(StatementList list) : _list(list) {}
     virtual void accept(Visitor& visitor) override;
+
+    StatementList getList() {
+        return _list;
+    }
+        
 private:
     StatementList _list;
 };
@@ -243,46 +248,84 @@ private:
 
 class IfStatement : public Statement {
 public:
-    IfStatement(Expression* expression, Block* block)
-        : _expression(expression), _block(block) {}
-    IfStatement(Expression* expression, Block* block, Block *else_block)
-        : _expression(expression), _block(block), _else_block(else_block) {}
+    IfStatement(Expression* _expression, Block* _block)
+        : expression(_expression), block(_block) {}
+    IfStatement(Expression* _expression, Block* _block, Block *else_block)
+        : expression(_expression), block(_block), elseBlock(else_block) {}
+    Expression* expression;
+    Block* block;
+    Block* elseBlock;
+
     virtual void accept(Visitor& visitor) override;
+    /*
 private:
     Expression* _expression;
     Block* _block;
     Block* _else_block;
+    */
 };
 
 class WhileStatement : public Statement {
 public:
-    WhileStatement(Expression* expression, Block* block)
-        : _expression(expression), _block(block) {}
+    WhileStatement(Expression* _expression, Block* _block)
+        : expression(_expression), block(_block) {}
     virtual void accept(Visitor& visitor) override;
+
+    Expression* expression;
+    Block* block;
+    /*
 private:
     Expression* _expression;
     Block* _block;
+    */
 };
 
 class ForStatement : public Statement {
 public:
     ForStatement(Expression *init_expression, Expression *cond_expression,
-        Expression *action_expression, Block* block)
-        : _init_expression(init_expression), _cond_expression(cond_expression),
-          _action_expression(action_expression), _block(block) {}
+        Expression *action_expression, Block* _block)
+        : initExpression(init_expression), condExpression(cond_expression),
+          actionExpression(action_expression), block(_block) {}
+
+    Expression *initExpression, *condExpression, *actionExpression;
+    Block* block;
+
     virtual void accept(Visitor& visitor) override;
+
+    /*
+    Expression* getInitExpression() {
+        return _init_expression;
+    }
+
+    Expression* getCondExpression() {
+        return _cond_expression;
+    }
+
+    Expression* getActionExpression() {
+        return _action_expression;
+    }
+
+    Expression* getBlock() {
+
+    }
+
 private:
     Expression *_init_expression, *_cond_expression, *_action_expression;
     Block* _block;
+    */
 };
 
 class ReturnStatement : public Statement {
 public:
-    ReturnStatement(Expression *expression)
-        : _expression(expression) {}
+    ReturnStatement(Expression *_expression)
+        : expression(_expression) {}
+
+    Expression* expression;
     virtual void accept(Visitor& visitor) override;
+    /*
 private:
     Expression *_expression;
+    */
 };
 
 class BreakStatement : public Statement {

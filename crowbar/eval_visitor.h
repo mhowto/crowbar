@@ -53,6 +53,9 @@ private:
     CRBValue* getVariable(std::string variableName);
     Function* getFunction(std::string functionName);
 
+    // 执行statement时使用
+    StatementResult* statementResult;
+
     void addOrSetLocalVariable(std::string variableName, CRBValue* value);
     void addOrSetGlobalVariable(std::string variableName, CRBValue* value);
 
