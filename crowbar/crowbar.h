@@ -239,6 +239,23 @@ public:
     IfElseIfStatement(Expression *expression, Block* block, ElsIfList* els_if_list, Block* else_block)
         : _expression(expression), _block(block), _els_if_list(els_if_list), _else_block(else_block) {}
     virtual void accept(Visitor& visitor) override;
+
+    Expression* getExpression() {
+        return _expression;
+    }
+
+    Block* getBlock() {
+        return _block;
+    }
+
+    ElsIfList* getElsIfList() {
+        return _els_if_list;
+    }
+
+    Block* getElseBlock() {
+        return _else_block;
+    }
+
 private:
     Expression* _expression;
     Block* _block;

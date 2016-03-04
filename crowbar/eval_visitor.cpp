@@ -171,7 +171,10 @@ void EvalVisitor::visit(WhileStatement* whileStatement) {
 }
 
 void EvalVisitor::visit(IfElseIfStatement *ifElseIfStatement) {
-
+    Expression* ifExpr = ifElseIfStatement->getExpression();
+    Block* ifBlock = ifElseIfStatement->getBlock();
+    ElsIfList* elsIfList = ifElseIfStatement->getElsIfList();
+    Block* elseBlock = ifElseIfStatement->getElseBlock();
 }
 
 void EvalVisitor::visit(ElsIf *elsIf) {

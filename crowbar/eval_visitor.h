@@ -39,7 +39,7 @@ public:
 private:
     CRBValue* result; // 上一次eval得到的值
 
-    // 堆栈形似的局部变量表
+    // 堆栈形式的局部变量表
     std::vector<VariableEnv> localVariableEnvs;
     //std::map<std::string, CRBValue*> localVariableEnv;
 
