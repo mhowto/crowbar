@@ -1,5 +1,14 @@
 #include "eval_visitor.h"
 
+bool EvalVisitor::visitBoolExpr(Expression* expr) {
+    expr->accept(*this);
+    if (this->result->type != ValueType::BoolValue) {
+        std::cout << "error: the eval result of cond expression in while-statement is not of type bool" << std::endl;
+        exit(1);
+    }
+    return static_cast<CRBBoolValue*>(this->result)->value;
+}
+
 CRBValue* EvalVisitor::getVariable(std::string variableName) {
     if (!localVariableEnvs.empty()) {
         VariableEnv localEnv = localVariableEnvs.back();
@@ -61,9 +70,7 @@ void EvalVisitor::visit(Function* function) {
 
 void EvalVisitor::visit(Block* block) {
     StatementList statementList = block->getList();
-    for (StatementList::iterator iter = statementList.begin();
-    iter != statementList.end();
-        iter++) {
+    for (StatementList::iterator iter = statementList.begin(); iter != statementList.end(); iter++) {
         (*iter)->accept(*this);
         if (this->statementResult->type != StatementResultType::NormalStatementResult) {
             return;
@@ -171,20 +178,147 @@ void EvalVisitor::visit(WhileStatement* whileStatement) {
 }
 
 void EvalVisitor::visit(IfElseIfStatement *ifElseIfStatement) {
-    Expression* ifExpr = ifElseIfStatement->getExpression();
-    Block* ifBlock = ifElseIfStatement->getBlock();
-    ElsIfList* elsIfList = ifElseIfStatement->getElsIfList();
-    Block* elseBlock = ifElseIfStatement->getElseBlock();
-}
+    std::vector<Expression*> expressions = ifElseIfStatement->getExpressions();
+    std::vector<Block*> blocks = ifElseIfStatement->getBlocks();
 
-void EvalVisitor::visit(ElsIf *elsIf) {
+    auto evalBlockResult = [this]() {
+        StatementResult* result = this->statementResult;
+        switch (result->type) {
+        case StatementResultType::BreakStatementResult:
+            this->statementResult = new StatementResult(StatementResultType::NormalStatementResult);
+            result->~StatementResult();
+            return true;
+        case StatementResultType::ReturnStatementResult:
+            this->statementResult = new StatementResult(StatementResultType::ReturnStatementResult, this->result);
+            result->~StatementResult();
+            return true;
+        case StatementResultType::ContinueStatementResult:
+            this->statementResult = new StatementResult(StatementResultType::ContinueStatementResult, this->result);
+            result->~StatementResult();
+            return true;
+        default:
+            return false;  // return normal result
+        }
+        return false;
+    };
 
-}
+    auto exprNum = expressions.size();
+    auto blockNum = blocks.size();
 
-void EvalVisitor::visit(ElsIfList *elsIfList) {
+    if (exprNum != blockNum || exprNum + 1 != blockNum) {
+        std::cout << "mismatch of expression and block pair in if-else statement" << std::endl;
+        exit(1);
+    }
 
+    for (std::size_t i = 0; i < exprNum; i++) {
+        Expression* expr = expressions[i];
+        Block* block = blocks[i];
+
+        if (visitBoolExpr(expr)) {
+            block->accept(*this);
+            /*
+            if (this->statementResult->type == StatementResultType::ReturnStatementResult) {
+            }
+            return;
+            */
+        }
+    }
+
+    if (exprNum + 1 == blockNum) {
+        Block* block = blocks[blockNum - 1];
+        block->accept(*this);
+    }
 }
 
 void EvalVisitor::visit(IfStatement* ifStatement) {
+    Expression* expr = ifStatement->expression;
+    Block* block = ifStatement->block;
+    Block* elseBlock = ifStatement->elseBlock;
 
+    if (visitBoolExpr(expr)) {
+        block->accept(*this);
+    }
+    else if (elseBlock){
+        elseBlock->accept(*this);
+    }
+}
+
+void EvalVisitor::visit(TranslationUnit* transUnit) {
+    std::vector<Node*> units = transUnit->getUnits();
+    for (auto iter = units.begin(); iter != units.end(); ++iter) {
+        (*iter)->accept(*this);
+        if (this->statementResult) {
+            // Èç¹ûÊÇstatement
+            switch (this->statementResult->type) {
+            case StatementResultType::BreakStatementResult:
+                std::cout << "illegal break statement in translation unit" << std::endl;
+                std::exit(1);
+                break;
+            case StatementResultType::ContinueStatementResult:
+                std::cout << "illegal continue statement in translation unit" << std::endl;
+                std::exit(1);
+                break;
+            case StatementResultType::ReturnStatementResult:
+                return;
+            default:
+                // Normal Result
+                break;
+            }
+        }
+
+        delete this->statementResult;
+    }
+}
+
+void EvalVisitor::visit(AssignExpression* assignExpr) {
+    std::string iden = assignExpr->getIdentifier();
+    Expression* expr = assignExpr->getExpression();
+
+    expr->accept(*this);
+    if (!this->result) {
+        std::cout << "assign expression eval failed" << std::endl;
+        exit(1);
+    }
+
+    CRBValue* value = getVariable(iden);
+
+
+    switch (this->result->type) {
+    case ValueType::BoolValue:
+        break;
+    case ValueType::DoubleValue:
+        break;
+    case ValueType::IntValue:
+        break;
+    case ValueType::NativePointer:
+        break;
+    case ValueType::StringValue:
+        break;
+    default:
+        return;
+    }
+}
+
+void EvalVisitor::visit(BinaryExpression*) {
+
+}
+
+void EvalVisitor::visit(UnaryExpression*) {
+}
+
+void EvalVisitor::visit(FunctionCall*) {
+}
+
+void EvalVisitor::visit(Primitive*) {
+
+}
+
+void EvalVisitor::visit(IdentifierExpression*) {
+}
+
+void EvalVisitor::visit(ExpressionStatement*) {
+
+}
+
+void EvalVisitor::visit(GlobalStatement*) {
 }

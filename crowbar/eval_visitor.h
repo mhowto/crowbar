@@ -22,8 +22,8 @@ public:
     virtual void visit(ExpressionStatement*) override;
     virtual void visit(GlobalStatement*) override;
     virtual void visit(Block*) override;
-    virtual void visit(ElsIf*) override;
-    virtual void visit(ElsIfList*) override;
+    //virtual void visit(ElsIf*) override;
+    //virtual void visit(ElsIfList*) override;
     virtual void visit(IfElseIfStatement*) override;
     virtual void visit(IfStatement*) override;
     virtual void visit(WhileStatement*) override;
@@ -39,6 +39,7 @@ public:
 private:
     CRBValue* result; // 上一次eval得到的值
 
+    bool isGlobal; // 用于标记是否是全局
     // 堆栈形式的局部变量表
     std::vector<VariableEnv> localVariableEnvs;
     //std::map<std::string, CRBValue*> localVariableEnv;
@@ -67,6 +68,10 @@ private:
 
     void deleteLocalFunction(std::string functionName);
     void deleteGlobalFunction(std::string functionName);
+
+    // 辅助函数
+    bool visitBoolExpr(Expression* expr);  // eval 一个bool表达式
+    // StatementResult* visitBlock(Block* block); // eval一个block
 };
 
 #endif

@@ -48,6 +48,10 @@ public:
     }
 
     virtual void accept(Visitor& visitor) override;
+
+    std::vector<Node*> getUnits() {
+        return _definitions_or_statements;
+    }
 private:
     std::vector<Node*> _definitions_or_statements;
 };
@@ -86,6 +90,15 @@ public:
         : _identifier(identifier), _expression(expression) {}
 
     virtual void accept(Visitor& visitor) override;
+
+    std::string getIdentifier() {
+        return  _identifier;
+    }
+
+    Expression* getExpression() {
+        return _expression;
+    }
+
 private:
     std::string _identifier;
     Expression* _expression;
@@ -218,7 +231,7 @@ public:
     ElsIf(Expression* expression, Block* block)
         : _expression(expression), _block(block) {}
     virtual void accept(Visitor& visitor) override;
-private:
+
     Expression* _expression;
     Block* _block;
 };
@@ -227,40 +240,62 @@ class ElsIfList : public Statement {
 public:
     ElsIfList(ElsIf* els_if, ElsIfList* elsif_list) : _els_if(els_if), _elsif_list(elsif_list) {}
     virtual void accept(Visitor& visitor) override;
-private:
+
     ElsIf* _els_if;
     ElsIfList* _elsif_list;
 };
 
 class IfElseIfStatement : public Statement {
 public:
-    IfElseIfStatement(Expression *expression, Block* block, ElsIfList* els_if_list)
-        : _expression(expression), _block(block), _els_if_list(els_if_list) {}
-    IfElseIfStatement(Expression *expression, Block* block, ElsIfList* els_if_list, Block* else_block)
-        : _expression(expression), _block(block), _els_if_list(els_if_list), _else_block(else_block) {}
+    IfElseIfStatement(Expression *expression, Block* block, ElsIfList* els_if_list) {
+        _expressions.push_back(expression);
+        _blocks.push_back(block);
+
+        while (els_if_list) {
+            if (els_if_list->_els_if) {
+                _expressions.push_back(els_if_list->_els_if->_expression);
+                _blocks.push_back(els_if_list->_els_if->_block);
+            }
+
+            els_if_list = els_if_list->_elsif_list;
+        }
+    }
+
+    IfElseIfStatement(Expression *expression, Block* block, ElsIfList* els_if_list, Block* else_block) {
+        _expressions.push_back(expression);
+        _blocks.push_back(block);
+
+        while (els_if_list) {
+            if (els_if_list->_els_if) {
+                _expressions.push_back(els_if_list->_els_if->_expression);
+                _blocks.push_back(els_if_list->_els_if->_block);
+            }
+
+            els_if_list = els_if_list->_elsif_list;
+        }
+
+        if (else_block) {
+            _blocks.push_back(else_block);
+        }
+    }
+
     virtual void accept(Visitor& visitor) override;
 
-    Expression* getExpression() {
-        return _expression;
+    std::vector<Expression*> getExpressions() {
+        return _expressions;
     }
 
-    Block* getBlock() {
-        return _block;
-    }
-
-    ElsIfList* getElsIfList() {
-        return _els_if_list;
-    }
-
-    Block* getElseBlock() {
-        return _else_block;
+    std::vector<Block*> getBlocks() {
+        return _blocks;
     }
 
 private:
-    Expression* _expression;
-    Block* _block;
-    ElsIfList* _els_if_list;
-    Block* _else_block;
+    std::vector<Expression*> _expressions;
+    //Expression* _expression;
+    std::vector<Block*> _blocks;
+    //Block* _block;
+    //ElsIfList* _els_if_list;
+    //Block* _else_block;
 };
 
 class IfStatement : public Statement {
