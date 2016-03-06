@@ -39,7 +39,7 @@ public:
 private:
     CRBValue* result; // 上一次eval得到的值
 
-    bool isGlobal; // 用于标记是否是全局
+    bool isGlobalEnv; // 用于标记是否是全局
     // 堆栈形式的局部变量表
     std::vector<VariableEnv> localVariableEnvs;
     //std::map<std::string, CRBValue*> localVariableEnv;

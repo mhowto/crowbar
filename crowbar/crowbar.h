@@ -109,6 +109,19 @@ public:
     BinaryExpression(BinaryOperator op, Expression* left, Expression* right)
         :_op(op), _left(left), _right(right) {}
     virtual void accept(Visitor& visitor) override;
+
+    BinaryOperator getOp() {
+        return _op;
+    }
+
+    Expression* getLeft() {
+        return _left;
+    }
+
+    Expression* getRight() {
+        return _right;
+    }
+
 private:
     BinaryOperator _op;
     Expression* _left;
@@ -121,6 +134,15 @@ public:
         :_op(op), _expr(expr) {}
 
     virtual void accept(Visitor& visitor) override;
+
+    UnaryOperator getOp() {
+        return _op;
+    }
+
+    Expression* getExpr() {
+        return _expr;
+    }
+
 private:
     UnaryOperator _op;
     Expression* _expr;
@@ -174,6 +196,15 @@ public:
     Primitive(PrimitiveType type)
         : _type(type) {}
     virtual void accept(Visitor& visitor) override;
+
+    PrimitiveType getType() {
+        return _type;
+    }
+
+    std::string getLiteral() {
+        return _literal;
+    }
+
 private:
     PrimitiveType _type;
     std::string _literal;

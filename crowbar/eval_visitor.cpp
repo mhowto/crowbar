@@ -59,7 +59,10 @@ void EvalVisitor::visit(FunctionCall* functionCall) {
     localVariableEnvs.push_back(variableEnv);
 
     // evaluate function
+    bool originGlobalEnv = isGlobalEnv;
+    isGlobalEnv = false;
     function->accept(*this);
+    isGlobalEnv = originGlobalEnv;
 
     localVariableEnvs.pop_back();
 }
@@ -246,6 +249,7 @@ void EvalVisitor::visit(IfStatement* ifStatement) {
 void EvalVisitor::visit(TranslationUnit* transUnit) {
     std::vector<Node*> units = transUnit->getUnits();
     for (auto iter = units.begin(); iter != units.end(); ++iter) {
+        isGlobalEnv = true;
         (*iter)->accept(*this);
         if (this->statementResult) {
             // 如果是statement
@@ -282,7 +286,17 @@ void EvalVisitor::visit(AssignExpression* assignExpr) {
 
     CRBValue* value = getVariable(iden);
 
+    if (isGlobalEnv) {
+        globalVariableEnv[iden] = this->result;
+    }
+    else {
+        std::map<std::string, CRBValue*>& localEnv = localVariableEnvs.back();
+        localEnv[iden] = this->result;
+    }
 
+    result = nullptr;
+
+    /*
     switch (this->result->type) {
     case ValueType::BoolValue:
         break;
@@ -297,10 +311,64 @@ void EvalVisitor::visit(AssignExpression* assignExpr) {
     default:
         return;
     }
+    */
 }
 
-void EvalVisitor::visit(BinaryExpression*) {
+void EvalVisitor::visit(BinaryExpression* binaryExpr) {
+    BinaryOperator op = binaryExpr->getOp();
+    Expression* leftExpr = binaryExpr->getLeft();
+    Expression* rightExpr = binaryExpr->getRight();
 
+
+    leftExpr->accept(*this);
+    CRBValue* leftVal = this->result;
+    rightExpr->accept(*this);
+    CRBValue* rightVal = this->result;
+
+    // 动态语言要转换成一致的类型
+    // 隐式类型类型转换原则：
+    // 1. 低精度 转换到 高精度 即 int->double true->1 false->0
+    // 2. int, double, bool -> string 
+    switch (op) {
+    case BinaryOperator::ADD:
+        if (leftVal->type == ValueType::DoubleValue) {
+
+        }
+        else if (leftVal->type == ValueType::StringValue) {
+
+        }
+        else if (leftVal->type == ValueType::BoolValue) {
+
+        }
+        else if (leftVal->type == ValueType::NativePointer) {
+
+        }
+        break;
+    case BinaryOperator::SUB:
+        break;
+    case BinaryOperator::MUL:
+        break;
+    case BinaryOperator::DIV:
+        break;
+    case BinaryOperator::MOD:
+        break;
+    case BinaryOperator::AND:
+        break;
+    case BinaryOperator::OR:
+        break;
+    case BinaryOperator::LT:
+        break;
+    case BinaryOperator::LE:
+        break;
+    case BinaryOperator::GT:
+        break;
+    case BinaryOperator::GE:
+        break;
+    case BinaryOperator::EQ:
+        break;
+    case BinaryOperator::NE:
+        break;
+    }
 }
 
 void EvalVisitor::visit(UnaryExpression*) {
@@ -309,8 +377,31 @@ void EvalVisitor::visit(UnaryExpression*) {
 void EvalVisitor::visit(FunctionCall*) {
 }
 
-void EvalVisitor::visit(Primitive*) {
-
+void EvalVisitor::visit(Primitive* primitive) {
+    PrimitiveType type = primitive->getType();
+    std::string literal = primitive->getLiteral();
+    switch (type) {
+    case PrimitiveType::INT_LITERAL:
+        this->result = new CRBDoubleValue(literal);
+        break;
+    case PrimitiveType::DOUBLE_LITERAL:
+        this->result = new CRBDoubleValue(literal);
+        break;
+    case PrimitiveType::STRING_LITERAL:
+        this->result = new CRBStringValue(literal);
+        break;
+    case PrimitiveType::FALSE_T:
+        this->result = new CRBBoolValue(false);
+        break;
+    case PrimitiveType::TRUE_T:
+        this->result = new CRBBoolValue(true);
+        break;
+    case PrimitiveType::NULL_T:
+        this->result = new CRBNativePointer(nullptr);
+        break;
+    default:
+        break;
+    }
 }
 
 void EvalVisitor::visit(IdentifierExpression*) {

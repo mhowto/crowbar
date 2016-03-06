@@ -5,6 +5,7 @@
 #include "interpreter.h"
 #include "crowbar.h"
 #include <memory>
+#include <string>
 
 extern Interpreter* interpreter;
 void parseFile(FILE*);
@@ -63,12 +64,14 @@ class CRBIntValue : public CRBValue {
 public:
     int value;
     CRBIntValue(int _value): CRBValue(ValueType::IntValue), value(_value) {}
+    CRBIntValue(std::string literal): CRBValue(ValueType::IntValue), value(std::stod(literal)) {}
 };
 
 class CRBDoubleValue : public CRBValue {
 public:
     double value;
     CRBDoubleValue(double _value): CRBValue(ValueType::DoubleValue), value(_value) {}
+    CRBDoubleValue(std::string literal): CRBValue(ValueType::DoubleValue), value(std::stod(literal)) {}
 };
 
 class CRBNativePointer :public CRBValue {
