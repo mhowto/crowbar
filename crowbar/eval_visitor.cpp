@@ -325,23 +325,429 @@ void EvalVisitor::visit(BinaryExpression* binaryExpr) {
     rightExpr->accept(*this);
     CRBValue* rightVal = this->result;
 
+    ValueType leftType = leftVal->type;
+    ValueType rightType = rightVal->type;
+
     // 动态语言要转换成一致的类型
     // 隐式类型类型转换原则：
+    // 无奈，做成javascript那种
     // 1. 低精度 转换到 高精度 即 int->double true->1 false->0
     // 2. int, double, bool -> string 
+    if (leftType == ValueType::DoubleValue && rightType == ValueType::DoubleValue) {
+        double lval = static_cast<CRBDoubleValue*>(leftVal)->value;
+        double rval = static_cast<CRBDoubleValue*>(rightVal)->value;
+        switch (op) {
+        case BinaryOperator::ADD:
+            delete this->result;
+            this->result = new CRBDoubleValue(lval + rval);
+            break;
+        case BinaryOperator::SUB:
+            delete this->result;
+            this->result = new CRBDoubleValue(lval - rval);
+            break;
+        case BinaryOperator::MUL:
+            delete this->result;
+            this->result = new CRBDoubleValue(lval * rval);
+            break;
+        case BinaryOperator::DIV:
+            delete this->result;
+            this->result = new CRBDoubleValue(lval / rval);
+            break;
+        case BinaryOperator::MOD:
+            delete this->result;
+            this->result = new CRBDoubleValue((int)lval % (int)rval);
+            break;
+        case BinaryOperator::AND:
+            delete this->result;
+            this->result = new CRBBoolValue(lval && rval);
+            break;
+        case BinaryOperator::OR:
+            delete this->result;
+            this->result = new CRBBoolValue(lval || rval);
+            break;
+        case BinaryOperator::LT:
+            delete this->result;
+            this->result = new CRBBoolValue(lval < rval);
+            break;
+        case BinaryOperator::LE:
+            delete this->result;
+            this->result = new CRBBoolValue(lval <= rval);
+            break;
+        case BinaryOperator::GT:
+            delete this->result;
+            this->result = new CRBBoolValue(lval > rval);
+            break;
+        case BinaryOperator::GE:
+            delete this->result;
+            this->result = new CRBBoolValue(lval >= rval);
+            break;
+        case BinaryOperator::EQ:
+            delete this->result;
+            this->result = new CRBBoolValue(lval == rval);
+            break;
+        case BinaryOperator::NE:
+            delete this->result;
+            this->result = new CRBBoolValue(lval != rval);
+            break;
+        default:
+            break;
+        }
+    }
+    else if (leftType == ValueType::DoubleValue && rightType == ValueType::BoolValue) {
+        double lval = static_cast<CRBDoubleValue*>(leftVal)->value;
+        bool rval = static_cast<CRBBoolValue*>(rightVal)->value;
+        switch (op) {
+        case BinaryOperator::ADD:
+            delete this->result;
+            this->result = new CRBDoubleValue(lval + (rval ? 1 : 0));
+            break;
+        case BinaryOperator::SUB:
+            delete this->result;
+            this->result = new CRBDoubleValue(lval - (rval ? 1 : 0));
+            break;
+        case BinaryOperator::MUL:
+            delete this->result;
+            this->result = new CRBDoubleValue(lval * (rval ? 1 : 0));
+            break;
+        case BinaryOperator::DIV:
+            delete this->result;
+            this->result = new CRBDoubleValue(lval / (rval ? 1 : 0));
+            break;
+        case BinaryOperator::MOD:
+            delete this->result;
+            this->result = new CRBDoubleValue((int)lval % (rval ? 1 : 0));
+            break;
+        case BinaryOperator::AND:
+            delete this->result;
+            this->result = new CRBBoolValue(lval && rval);
+            break;
+        case BinaryOperator::OR:
+            delete this->result;
+            this->result = new CRBBoolValue(lval || rval);
+            break;
+        case BinaryOperator::LT:
+            delete this->result;
+            this->result = new CRBBoolValue(lval < (rval ? 1 : 0));
+            break;
+        case BinaryOperator::LE:
+            delete this->result;
+            this->result = new CRBBoolValue(lval <= (rval ? 1 : 0));
+            break;
+        case BinaryOperator::GT:
+            delete this->result;
+            this->result = new CRBBoolValue(lval > (rval ? 1 : 0));
+            break;
+        case BinaryOperator::GE:
+            delete this->result;
+            this->result = new CRBBoolValue(lval >= (rval ? 1 : 0));
+            break;
+        case BinaryOperator::EQ:
+            delete this->result;
+            this->result = new CRBBoolValue(lval == (rval ? 1 : 0));
+            break;
+        case BinaryOperator::NE:
+            delete this->result;
+            this->result = new CRBBoolValue(lval != (rval ? 1 : 0));
+            break;
+        default:
+            break;
+        }
+    }
+    else if (leftType == ValueType::DoubleValue && rightType == ValueType::StringValue) {
+        double lval = static_cast<CRBDoubleValue*>(leftVal)->value;
+        std::string rval = static_cast<CRBStringValue*>(rightVal)->value;
+        switch (op) {
+        case BinaryOperator::ADD:
+            delete this->result;
+            this->result = new CRBStringValue(std::to_string(lval) + rval);
+            break;
+        case BinaryOperator::SUB:
+            delete this->result;
+            this->result = new CRBStringValue("NaN");
+            break;
+        case BinaryOperator::MUL:
+            delete this->result;
+            this->result = new CRBStringValue("NaN");
+            break;
+        case BinaryOperator::DIV:
+            delete this->result;
+            this->result = new CRBStringValue("NaN");
+            break;
+        case BinaryOperator::MOD:
+            delete this->result;
+            this->result = new CRBStringValue("NaN");
+            break;
+        case BinaryOperator::AND:
+            delete this->result;
+            this->result = new CRBBoolValue(lval && !rval.empty());
+            break;
+        case BinaryOperator::OR:
+            delete this->result;
+            this->result = new CRBBoolValue(lval || !rval.empty());
+            break;
+        case BinaryOperator::LT:
+            delete this->result;
+            this->result = new CRBBoolValue(false);
+            break;
+        case BinaryOperator::LE:
+            delete this->result;
+            this->result = new CRBBoolValue(false);
+            break;
+        case BinaryOperator::GT:
+            delete this->result;
+            this->result = new CRBBoolValue(false);
+            break;
+        case BinaryOperator::GE:
+            delete this->result;
+            this->result = new CRBBoolValue(false);
+            break;
+        case BinaryOperator::EQ:
+            delete this->result;
+            this->result = new CRBBoolValue(false);
+            break;
+        case BinaryOperator::NE:
+            delete this->result;
+            this->result = new CRBBoolValue(false);
+            break;
+        default:
+            break;
+        }
+    }
+    else if (leftType == ValueType::DoubleValue && rightType == ValueType::NativePointer) {
+        double lval = static_cast<CRBDoubleValue*>(leftVal)->value;
+        void* rval = static_cast<CRBNativePointer*>(rightVal)->pointer;
+        std::string rpointerType = static_cast<CRBNativePointer*>(rightVal)->pointerType;
+        switch (op) {
+        case BinaryOperator::ADD:
+            delete this->result;
+            this->result = new CRBNativePointer(rpointerType, rval);
+            break;
+        case BinaryOperator::SUB:
+            delete this->result;
+            this->result = new CRBStringValue("NaN");
+            break;
+        case BinaryOperator::MUL:
+            delete this->result;
+            this->result = new CRBStringValue("NaN");
+            break;
+        case BinaryOperator::DIV:
+            delete this->result;
+            this->result = new CRBStringValue("NaN");
+            break;
+        case BinaryOperator::MOD:
+            delete this->result;
+            this->result = new CRBStringValue("NaN");
+            break;
+        case BinaryOperator::AND:
+            delete this->result;
+            this->result = new CRBBoolValue(lval && rval);
+            break;
+        case BinaryOperator::OR:
+            delete this->result;
+            this->result = new CRBBoolValue(lval || rval);
+            break;
+        case BinaryOperator::LT:
+            delete this->result;
+            this->result = new CRBBoolValue(false);
+            break;
+        case BinaryOperator::LE:
+            delete this->result;
+            this->result = new CRBBoolValue(false);
+            break;
+        case BinaryOperator::GT:
+            delete this->result;
+            this->result = new CRBBoolValue(false);
+            break;
+        case BinaryOperator::GE:
+            delete this->result;
+            this->result = new CRBBoolValue(false);
+            break;
+        case BinaryOperator::EQ:
+            delete this->result;
+            this->result = new CRBBoolValue(false);
+            break;
+        case BinaryOperator::NE:
+            delete this->result;
+            this->result = new CRBBoolValue(false);
+            break;
+        default:
+            break;
+        }
+    }
+    else if (leftType == ValueType::BoolValue && rightType == ValueType::BoolValue) {
+        bool lval = static_cast<CRBBoolValue*>(leftVal)->value;
+        bool rval = static_cast<CRBBoolValue*>(rightVal)->value;
+        switch (op) {
+        case BinaryOperator::ADD:
+            delete this->result;
+            this->result = new CRBDoubleValue((lval ? 1 : 0) + (rval ? 1 : 0));
+            break;
+        case BinaryOperator::SUB:
+            delete this->result;
+            this->result = new CRBDoubleValue((lval ? 1 : 0) - (rval ? 1 : 0));
+            break;
+        case BinaryOperator::MUL:
+            delete this->result;
+            this->result = new CRBDoubleValue((lval ? 1 : 0) * (rval ? 1 : 0));
+            break;
+        case BinaryOperator::DIV:
+            delete this->result;
+            if (!rval) {
+                std::cout << "illegal dividend" << std::endl;
+                exit(1);
+            }
+            this->result = new CRBDoubleValue((lval ? 1 : 0) / 1);
+            break;
+        case BinaryOperator::MOD:
+            delete this->result;
+            if (!rval) {
+                std::cout << "illegal dividend" << std::endl;
+                exit(1);
+            }
+            this->result = new CRBDoubleValue((lval ? 1 : 0) % 1);
+            break;
+        case BinaryOperator::AND:
+            delete this->result;
+            this->result = new CRBBoolValue(lval && rval);
+            break;
+        case BinaryOperator::OR:
+            delete this->result;
+            this->result = new CRBBoolValue(lval || rval);
+            break;
+        case BinaryOperator::LT:
+            delete this->result;
+            this->result = new CRBBoolValue((lval ? 1 : 0) < (rval ? 1 : 0));
+            break;
+        case BinaryOperator::LE:
+            delete this->result;
+            this->result = new CRBBoolValue((lval ? 1 : 0) <= (rval ? 1 : 0));
+            break;
+        case BinaryOperator::GT:
+            delete this->result;
+            this->result = new CRBBoolValue((lval ? 1 : 0) > (rval ? 1 : 0));
+            break;
+        case BinaryOperator::GE:
+            delete this->result;
+            this->result = new CRBBoolValue((lval ? 1 : 0) >= (rval ? 1 : 0));
+            break;
+        case BinaryOperator::EQ:
+            delete this->result;
+            this->result = new CRBBoolValue((lval ? 1 : 0) == (rval ? 1 : 0));
+            break;
+        case BinaryOperator::NE:
+            delete this->result;
+            this->result = new CRBBoolValue((lval ? 1 : 0) != (rval ? 1 : 0));
+            break;
+        default:
+            break;
+        }
+    }
+    else if (leftType == ValueType::BoolValue && rightType == ValueType::DoubleValue) {
+    }
+    else if (leftType == ValueType::BoolValue && rightType == ValueType::StringValue) {
+    }
+    else if (leftType == ValueType::BoolValue && rightType == ValueType::NativePointer) {
+    }
+    else if (leftType == ValueType::StringValue && rightType == ValueType::StringValue) {
+    }
+    else if (leftType == ValueType::StringValue && rightType == ValueType::DoubleValue) {
+    }
+    else if (leftType == ValueType::StringValue && rightType == ValueType::BoolValue) {
+    }
+    else if (leftType == ValueType::StringValue && rightType == ValueType::NativePointer) {
+    }
+    else if (leftType == ValueType::NativePointer && rightType == ValueType::NativePointer) {
+    }
+    else if (leftType == ValueType::NativePointer && rightType == ValueType::DoubleValue) {
+    }
+    else if (leftType == ValueType::NativePointer && rightType == ValueType::BoolValue) {
+    }
+    else if (leftType == ValueType::NativePointer && rightType == ValueType::StringValue) {
+    }
+
     switch (op) {
     case BinaryOperator::ADD:
         if (leftVal->type == ValueType::DoubleValue) {
-
+            double lval = static_cast<CRBDoubleValue*>(leftVal)->value;
+            if (rightVal->type == ValueType::StringValue) {
+                std::string rval = static_cast<CRBStringValue*>(rightVal)->value;
+                delete this->result;
+                this->result = new CRBStringValue(std::to_string(lval) + rval);
+            }
+            else if (rightVal->type == ValueType::DoubleValue) {
+                double rval = static_cast<CRBDoubleValue*>(rightVal)->value;
+                delete this->result;
+                this->result = new CRBDoubleValue(lval + rval);
+            }
+            else if (rightVal->type == ValueType::BoolValue) {
+                bool rval = static_cast<CRBBoolValue*>(rightVal)->value;
+                delete this->result;
+                this->result = new CRBDoubleValue(lval + (rval ? 1: 0));
+            }
+            else if (rightVal->type == ValueType::NativePointer) {
+                void* pointer = static_cast<CRBNativePointer*>(rightVal)->pointer;
+                std::string pointerType = static_cast<CRBNativePointer*>(rightVal)->pointerType;
+                delete this->result;
+                // TODO: 根据pointerType计算pointer的新地址
+                this->result = new CRBNativePointer(pointerType, pointer);
+            }
         }
         else if (leftVal->type == ValueType::StringValue) {
-
+            std::string lval = static_cast<CRBStringValue*>(leftVal)->value;
+            if (rightVal->type == ValueType::StringValue) {
+                std::string rval = static_cast<CRBStringValue*>(rightVal)->value;
+                delete this->result;
+                this->result = new CRBStringValue(lval + rval);
+            }
+            else if (rightVal->type == ValueType::DoubleValue) {
+                double rval = static_cast<CRBDoubleValue*>(rightVal)->value;
+                delete this->result;
+                this->result = new CRBStringValue(lval + std::to_string(rval));
+            }
+            else if (rightVal->type == ValueType::BoolValue) {
+                bool rval = static_cast<CRBBoolValue*>(rightVal)->value;
+                delete this->result;
+                this->result = new CRBStringValue(lval + (rval ? "true" : "false"));
+            }
+            else if (rightVal->type == ValueType::NativePointer) {
+                std::cout << "unable to add a string with one pointer" << std::endl;
+                std::exit(1);
+            }
         }
         else if (leftVal->type == ValueType::BoolValue) {
-
+            bool lval = static_cast<CRBBoolValue*>(leftVal)->value;
+            if (rightVal->type == ValueType::StringValue) {
+                std::string rval = static_cast<CRBStringValue*>(rightVal)->value;
+                delete this->result;
+                this->result = new CRBStringValue(lval ? "true" : "false" + rval);
+            }
+            else if (rightVal->type == ValueType::DoubleValue) {
+                double rval = static_cast<CRBDoubleValue*>(rightVal)->value;
+                delete this->result;
+                this->result = new CRBDoubleValue(lval ? 1 : 0 + rval);
+            }
+            else if (rightVal->type == ValueType::BoolValue) {
+                bool rval = static_cast<CRBBoolValue*>(rightVal)->value;
+                delete this->result;
+                this->result = new CRBDoubleValue(lval ? 1 : 0 + rval ? 1 : 0);
+            }
+            else if (rightVal->type == ValueType::NativePointer) {
+                std::cout << "unable to add a bool type with one pointer" << std::endl;
+                std::exit(1);
+            }
         }
         else if (leftVal->type == ValueType::NativePointer) {
-
+            void* lpointer = static_cast<CRBNativePointer*>(leftVal)->pointer;
+            std::string pointerType = static_cast<CRBNativePointer*>(rightVal)->pointerType;
+            if (rightVal->type == ValueType::DoubleValue) {
+                double rval = static_cast<CRBDoubleValue*>(rightVal)->value;
+                delete this->result;
+                this->result = new CRBNativePointer(pointerType, lpointer);
+            }
+            else {
+                std::cout << "unable to add a illegal type with one native pointer" << std::endl;
+                std::exit(1);
+            }
         }
         break;
     case BinaryOperator::SUB:
