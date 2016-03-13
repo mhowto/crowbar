@@ -44,6 +44,7 @@ public:
     virtual double toDouble() = 0;
     virtual std::string toString() = 0;
     virtual int toInt() = 0;
+    virtual CRBValue* copyOnce() = 0;
 };
 
 class StatementResult {
@@ -79,6 +80,10 @@ public:
     int toInt() override {
         return std::nan("0");
     }
+
+    CRBValue* copyOnce() override {
+        return new CRBStringValue(value);
+    }
 };
 
 class CRBIntValue : public CRBValue {
@@ -101,6 +106,10 @@ public:
 
     int toInt() override {
         return value;
+    }
+
+    CRBValue* copyOnce() override {
+        return new CRBIntValue(value);
     }
 };
 
@@ -136,6 +145,10 @@ public:
     int toInt() override {
         return (int) value;
     }
+
+    CRBValue* copyOnce() override {
+        return new CRBDoubleValue(value);
+    }
 };
 
 class CRBNativePointer :public CRBValue {
@@ -155,6 +168,14 @@ public:
 
     std::string toString() override {
         return std::to_string((char*) pointer - (char*) 0);
+    }
+
+    int toInt() override {
+        return (char*)pointer - (char*)0;
+    }
+
+    CRBValue* copyOnce() override {
+        return new CRBNativePointer(pointerType, pointer);
     }
 };
 
@@ -178,6 +199,10 @@ public:
 
     int toInt() override {
         return (value ? 1 : 0);
+    }
+
+    CRBValue* copyOnce() override {
+        return new CRBBoolValue(value);
     }
 };
 

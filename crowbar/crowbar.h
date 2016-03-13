@@ -215,6 +215,11 @@ public:
     IdentifierExpression(std::string identifier)
         : _identifier(identifier) {}
     virtual void accept(Visitor& visitor) override;
+
+    std::string getIdentifier() {
+        return _identifier;
+    }
+
 private:
     std::string _identifier;
 };
@@ -229,6 +234,11 @@ public:
     ExpressionStatement(Expression* expression)
         : _expression(expression) {}
     virtual void accept(Visitor& visitor) override;
+
+    Expression* getExpression() {
+        return _expression;
+    }
+
 private:
     Expression* _expression;
 };
@@ -238,6 +248,11 @@ public:
     GlobalStatement(std::vector<std::string> identifiers)
         : _identifier_list(identifiers) {}
     virtual void accept(Visitor& visitor) override;
+
+    std::vector<std::string> getIdentifiers() {
+        return _identifier_list;
+    }
+
 private:
     std::vector<std::string> _identifier_list;
 };

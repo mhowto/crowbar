@@ -61,14 +61,16 @@ void EvalVisitor::visit(FunctionCall* functionCall) {
     // evaluate function
     bool originGlobalEnv = isGlobalEnv;
     isGlobalEnv = false;
-    function->accept(*this);
+    //function->accept(*this);
+    function->getBlock()->accept(*this);
     isGlobalEnv = originGlobalEnv;
 
     localVariableEnvs.pop_back();
 }
 
 void EvalVisitor::visit(Function* function) {
-    function->getBlock()->accept(*this);
+    // 此处是FunctionDefinition的eval过程，向runtime注册一个函数 
+    globalFunctionEnv[function->getName()] = function;
 }
 
 void EvalVisitor::visit(Block* block) {
@@ -294,24 +296,7 @@ void EvalVisitor::visit(AssignExpression* assignExpr) {
         localEnv[iden] = this->result;
     }
 
-    result = nullptr;
-
-    /*
-    switch (this->result->type) {
-    case ValueType::BoolValue:
-        break;
-    case ValueType::DoubleValue:
-        break;
-    case ValueType::IntValue:
-        break;
-    case ValueType::NativePointer:
-        break;
-    case ValueType::StringValue:
-        break;
-    default:
-        return;
-    }
-    */
+    this->result = nullptr;
 }
 
 void EvalVisitor::visit(BinaryExpression* binaryExpr) {
@@ -499,10 +484,23 @@ void EvalVisitor::visit(BinaryExpression* binaryExpr) {
     }
 }
 
-void EvalVisitor::visit(UnaryExpression*) {
-}
+void EvalVisitor::visit(UnaryExpression* unaryExpr) {
+    Expression* expr = unaryExpr->getExpr();
+    UnaryOperator op = unaryExpr->getOp();
 
-void EvalVisitor::visit(FunctionCall*) {
+    expr->accept(*this);
+    CRBValue* val = this->result;
+
+    switch (op) {
+    case UnaryOperator::NEGATIVE:
+        delete this->result;
+        this->result = new CRBDoubleValue(-val->toDouble());
+        break;
+    case UnaryOperator::NOT:
+        delete this->result;
+        this->result = new CRBBoolValue(!val->toBool());
+        break;
+    }
 }
 
 void EvalVisitor::visit(Primitive* primitive) {
@@ -525,19 +523,32 @@ void EvalVisitor::visit(Primitive* primitive) {
         this->result = new CRBBoolValue(true);
         break;
     case PrimitiveType::NULL_T:
-        this->result = new CRBNativePointer(nullptr);
+        this->result = new CRBNativePointer("char", nullptr);
         break;
     default:
         break;
     }
 }
 
-void EvalVisitor::visit(IdentifierExpression*) {
+void EvalVisitor::visit(IdentifierExpression* idenExpr) {
+    std::string identifier = idenExpr->getIdentifier();
+
+    CRBValue* val = getVariable(identifier);
+    this->result = val->copyOnce();
 }
 
-void EvalVisitor::visit(ExpressionStatement*) {
-
+void EvalVisitor::visit(ExpressionStatement* statement) {
+    Expression* expr = statement->getExpression();
+    expr->accept(*this);
 }
 
-void EvalVisitor::visit(GlobalStatement*) {
+void EvalVisitor::visit(GlobalStatement* globalStatement) {
+    std::vector<std::string> identifiers = globalStatement->getIdentifiers();
+    std::set<std::string> env = globalVariableDefinitions.back();
+    for (int i = 0; i < identifiers.size(); i++) {
+        std::string iden = identifiers[i];
+        if (env.find(iden) == env.end()) {
+            env.insert(iden);
+        }
+    }
 }
