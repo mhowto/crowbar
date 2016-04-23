@@ -22,8 +22,8 @@ public:
     virtual void visit(ExpressionStatement*) override;
     virtual void visit(GlobalStatement*) override;
     virtual void visit(Block*) override;
-    //virtual void visit(ElsIf*) override;
-    //virtual void visit(ElsIfList*) override;
+    virtual void visit(ElsIf*) override;
+    virtual void visit(ElsIfList*) override;
     virtual void visit(IfElseIfStatement*) override;
     virtual void visit(IfStatement*) override;
     virtual void visit(WhileStatement*) override;

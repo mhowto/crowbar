@@ -1,14 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "crowbar", "crowbar\crowbar.vcxproj", "{B3CE921D-381A-49FC-BE34-35465FF9632D}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "unittest", "unittest\unittest.vcxproj", "{5BB1E42C-C77D-4C50-A7D6-DD525A474F0F}"
-	ProjectSection(ProjectDependencies) = postProject
-		{B3CE921D-381A-49FC-BE34-35465FF9632D} = {B3CE921D-381A-49FC-BE34-35465FF9632D}
-	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "main", "main\main.vcxproj", "{5557A613-71EB-4247-BB4C-C42CE9773A2A}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -31,14 +26,6 @@ Global
 		{B3CE921D-381A-49FC-BE34-35465FF9632D}.Release|x64.Build.0 = Release|x64
 		{B3CE921D-381A-49FC-BE34-35465FF9632D}.Release|x86.ActiveCfg = Release|Win32
 		{B3CE921D-381A-49FC-BE34-35465FF9632D}.Release|x86.Build.0 = Release|Win32
-		{5BB1E42C-C77D-4C50-A7D6-DD525A474F0F}.Debug|x64.ActiveCfg = Debug|x64
-		{5BB1E42C-C77D-4C50-A7D6-DD525A474F0F}.Debug|x64.Build.0 = Debug|x64
-		{5BB1E42C-C77D-4C50-A7D6-DD525A474F0F}.Debug|x86.ActiveCfg = Debug|Win32
-		{5BB1E42C-C77D-4C50-A7D6-DD525A474F0F}.Debug|x86.Build.0 = Debug|Win32
-		{5BB1E42C-C77D-4C50-A7D6-DD525A474F0F}.Release|x64.ActiveCfg = Release|x64
-		{5BB1E42C-C77D-4C50-A7D6-DD525A474F0F}.Release|x64.Build.0 = Release|x64
-		{5BB1E42C-C77D-4C50-A7D6-DD525A474F0F}.Release|x86.ActiveCfg = Release|Win32
-		{5BB1E42C-C77D-4C50-A7D6-DD525A474F0F}.Release|x86.Build.0 = Release|Win32
 		{5557A613-71EB-4247-BB4C-C42CE9773A2A}.Debug|x64.ActiveCfg = Debug|x64
 		{5557A613-71EB-4247-BB4C-C42CE9773A2A}.Debug|x64.Build.0 = Debug|x64
 		{5557A613-71EB-4247-BB4C-C42CE9773A2A}.Debug|x86.ActiveCfg = Debug|Win32

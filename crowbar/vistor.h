@@ -16,8 +16,8 @@ public:
     virtual void visit(ExpressionStatement*) = 0;
     virtual void visit(GlobalStatement*) = 0;
     virtual void visit(Block*) = 0;
-    //virtual void visit(ElsIf*) = 0;
-    //virtual void visit(ElsIfList*) = 0;
+    virtual void visit(ElsIf*) = 0;
+    virtual void visit(ElsIfList*) = 0;
     virtual void visit(IfElseIfStatement*) = 0;
     virtual void visit(IfStatement*) = 0;
     virtual void visit(WhileStatement*) = 0;

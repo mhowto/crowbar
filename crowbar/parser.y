@@ -221,8 +221,10 @@ unary_expression
 primary_expression
 	: IDENTIFIER LP argument_list RP
 	{
-	std::cout << $1 << std::endl;
-	std::cout << $3 << std::endl;
+	   //std::cout << $1 << std::endl;
+	   //std::cout << $3 << std::endl;
+	   printf($1);
+	   //printf($3);
 		$$ = new FunctionCall($1, *$3);
 	}
 	| IDENTIFIER LP RP
@@ -308,6 +310,9 @@ if_statement
 
 elsif_list
 	: elsif
+	{
+		$$ = new ElsIfList($1, 0);
+	}
 	| elsif_list elsif
 	{
 		$$ = new ElsIfList($2, $1);

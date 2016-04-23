@@ -248,6 +248,10 @@ void EvalVisitor::visit(IfStatement* ifStatement) {
     }
 }
 
+void EvalVisitor::visit(ElsIf* elsIf) {}
+
+void EvalVisitor::visit(ElsIfList* elsIfList) {}
+
 void EvalVisitor::visit(TranslationUnit* transUnit) {
     std::vector<Node*> units = transUnit->getUnits();
     for (auto iter = units.begin(); iter != units.end(); ++iter) {

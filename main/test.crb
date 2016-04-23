@@ -100,24 +100,24 @@ print("\n");
 for (i = 0; i < 5; i = i + 1) {
     print("*** i.." + i + "***\n");
     if (i == 0) {
-	print("i == 0\n");
+	    print("i == 0\n");
     } elsif (i == 1) {
-	print("i == 1\n");
+	    print("i == 1\n");
     } elsif (i == 2) {
-	print("i == 2\n");
+	   print("i == 2\n");
     } else {
-	print("i == else\n");
+	   print("i == else\n");
     }
     if (i != 3) {
-	print("i != 3\n");
+	   print("i != 3\n");
     }
     if (i == 2 || i == 3) {
-	print("i == 2 || i == 3\n");
+	   print("i == 2 || i == 3\n");
     }
     for (j = 0; j < 5; j = j + 1) {
-	if (i == 2 && j == 3) {
-	    print("i == 2 && j == " + j + "\n");
-	}
+	    if (i == 2 && j == 3) {
+	        print("i == 2 && j == " + j + "\n");
+	    }
     }
 }
 
