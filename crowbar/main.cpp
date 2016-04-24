@@ -1,7 +1,7 @@
 #include <iostream>
 #include "CRB.h"
 
-Interpreter* interpreter = nullptr;
+Interpreter* interpreter = nullptr; // 全局变量定义
 int main(int argc, char **argv)
 {
     std::FILE* fp = std::fopen("test.crb", "r");
@@ -10,6 +10,9 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
     parseFile(fp);
+    if (interpreter) {
+        interpreter->interpret();
+    }
     std::cout << "main cpp";
     std::cin.get();
 }

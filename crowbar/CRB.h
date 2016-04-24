@@ -7,7 +7,7 @@
 #include <memory>
 #include <string>
 
-extern Interpreter* interpreter;
+extern Interpreter* interpreter; // ±äÁ¿ÉùÃ÷
 void parseFile(FILE*);
 
 //std::unique_ptr<char[]> dupYYText(char* YYText);
