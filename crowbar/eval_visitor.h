@@ -8,9 +8,18 @@
 
 typedef std::map<std::string, CRBValue*> VariableEnv;
 typedef std::map<std::string, Function*> FunctionEnv;
+typedef CRBValue* (*NativeFunctionProc) (int, std::vector<CRBValue*>);
 
 class EvalVisitor : public Visitor {
 public:
+
+    /*
+    typedef void (*Callback0)(void* ret);
+    typedef void (*Callback1)(void* p1, void* ret);
+    typedef void (*Callback2)(void* p1, void* p2, void* ret);
+    typedef void (*Callback3)(void* p1, void* p2, void* p3, void* ret);
+    */
+
     virtual void visit(TranslationUnit*) override;
     virtual void visit(Function*) override;
     virtual void visit(AssignExpression*) override;
@@ -36,6 +45,7 @@ public:
         return result;
     }
 
+    EvalVisitor();
 private:
     CRBValue* result; // 上一次eval得到的值
 
@@ -48,8 +58,19 @@ private:
     VariableEnv globalVariableEnv;
     FunctionEnv globalFunctionEnv;
 
-    // 用于记录函数中的全局变量表, 也为堆栈形式
-    std::vector<std::set<std::string> > globalVariableDefinitions;
+    /*********** 预定义函数 ********/
+    /* 实现太复杂
+    bool callPreDefinedFunction(std::string name, std::vector<std::string> params);
+    std::vector<std::string> preDefinedFunctionNames;
+
+    std::map<std::string, Callback0> funcMap0;
+    std::map<std::string, Callback1> funcMap1;
+    std::map<std::string, Callback2> funcMap2;
+    std::map<std::string, Callback3> funcMap3;
+    */
+    /*********** 预定义函数 ********/
+
+    std::set<std::string> globalVariableDefinitions;
 
     CRBValue* getVariable(std::string variableName);
     Function* getFunction(std::string functionName);
@@ -72,6 +93,9 @@ private:
     // 辅助函数
     bool visitBoolExpr(Expression* expr);  // eval 一个bool表达式
     // StatementResult* visitBlock(Block* block); // eval一个block
+
+    void init();
+    void addNativeFunction(std::string name, NativeFunctionProc proc);
 };
 
 #endif

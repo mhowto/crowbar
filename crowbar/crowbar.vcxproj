@@ -164,6 +164,7 @@
     <ClCompile Include="interpreter.cpp" />
     <ClCompile Include="lexer.flex.cpp" />
     <ClCompile Include="lexer_util.cpp" />
+    <ClCompile Include="native.cpp" />
     <ClCompile Include="parser.tab.cpp" />
     <ClCompile Include="string.cpp" />
   </ItemGroup>

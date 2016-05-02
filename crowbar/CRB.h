@@ -7,7 +7,7 @@
 #include <memory>
 #include <string>
 
-extern Interpreter* interpreter; // ±äÁ¿ÉùÃ÷
+extern Interpreter* interpreter;
 void parseFile(FILE*);
 
 //std::unique_ptr<char[]> dupYYText(char* YYText);
@@ -38,7 +38,7 @@ class CRBValue {
 public:
     ValueType type;
     CRBValue(ValueType _type): type(_type) {}
-    virtual ~CRBValue() = 0;
+    virtual ~CRBValue() {};
 
     virtual bool toBool() = 0;
     virtual double toDouble() = 0;
@@ -52,11 +52,11 @@ public:
     StatementResultType type;
     CRBValue* returnValue;
 
-    StatementResult(StatementResultType _type) : type(_type) {}
+    StatementResult(StatementResultType _type) : type(_type), returnValue(nullptr) {}
     StatementResult(StatementResultType _type, CRBValue* value) : type(_type), returnValue(value) {}
 
     ~StatementResult() {
-        delete returnValue;
+        //delete returnValue;
     }
 };
 
@@ -64,6 +64,7 @@ class CRBStringValue : public CRBValue {
 public:
     std::string value;
     CRBStringValue(std::string _value): CRBValue(ValueType::StringValue), value(_value) {}
+    ~CRBStringValue() {}
 
     bool toBool() override {
         return !value.empty();
@@ -91,6 +92,7 @@ public:
     int value;
     CRBIntValue(int _value): CRBValue(ValueType::IntValue), value(_value) {}
     CRBIntValue(std::string literal): CRBValue(ValueType::IntValue), value(std::stod(literal)) {}
+    ~CRBIntValue() {}
 
     bool toBool() override {
         return value != 0;
@@ -130,6 +132,8 @@ public:
     CRBDoubleValue(double _value): CRBValue(ValueType::DoubleValue), value(_value) {}
     CRBDoubleValue(std::string literal): CRBValue(ValueType::DoubleValue), value(std::stod(literal)) {}
 
+    ~CRBDoubleValue() override {}
+
     bool toBool() override {
         return almost_equal(value, 0.0, 2);
     }
@@ -157,6 +161,7 @@ public:
     std::string pointerType;
     CRBNativePointer(std::string _pointerType, void* _pointer): 
         CRBValue(ValueType::NativePointer), pointerType(_pointerType), pointer(_pointer) {}
+    ~CRBNativePointer() {}
 
     bool toBool() override {
         return !pointer;
@@ -184,6 +189,7 @@ public:
     bool value;
 
     CRBBoolValue(bool _value) : CRBValue(ValueType::BoolValue), value(_value) {}
+    ~CRBBoolValue() {}
 
     bool toBool() override {
         return value;
@@ -205,5 +211,10 @@ public:
         return new CRBBoolValue(value);
     }
 };
+
+/* native.cpp */
+CRBValue* native_print(int argSize, std::vector<CRBValue*> args);
+CRBValue* native_fopen(int argSize, std::vector<CRBValue*> args);
+CRBValue* native_fputs(int argSize, std::vector<CRBValue*> args);
 
 #endif

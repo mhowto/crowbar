@@ -9,6 +9,9 @@
 
 #define LINE_BUF_SIZE 500
 
+class CRBValue;
+typedef CRBValue* (*NativeFunctionProc) (int, std::vector<CRBValue*>);
+
 enum class BinaryOperator
 {
     ADD, SUB, MUL, DIV,
@@ -34,10 +37,20 @@ class Node {
 public:
     virtual ~Node() {}
     virtual void accept(Visitor&) = 0;
+    Node() : _is_function(false) {}
+    Node(bool is_function): _is_function(is_function) {}
+    bool isFunction() {
+        return _is_function;
+    }
+private:
+    bool _is_function;
 };
 
 class Expression : public Node{};
-class Statement : public Node {};
+class Statement : public Node {
+public:
+    bool is_global_statement = false;;
+};
 
 class Block;
 
@@ -60,9 +73,11 @@ class Function : public Node {
 public:
     ~Function() {}
     Function(std::string name, std::vector<std::string> parameter_list, Block* block)
-        : _name(name), _parameter_list(parameter_list), _block(block) {}
+        : Node(true), _name(name), _parameter_list(parameter_list), _block(block), _is_native(false) {}
     Function(std::string name, Block* block)
-        : _name(name), _block(block) {}
+        : Node(true), _name(name), _block(block), _is_native(false) {}
+    Function(std::string name, NativeFunctionProc proc) 
+        : Node(true), _name(name), _is_native(true), _proc(proc) {}
 
     std::string getName() {
         return _name;
@@ -75,12 +90,26 @@ public:
     Block* getBlock() {
         return _block;
     }
+    
+    bool isNative() {
+        return _is_native;
+    }
+
+    /*
+    NativeFunctionProc getProc() {
+        return _proc;
+    }
+    */
+    NativeFunctionProc _proc;
+    std::vector<std::string> global_vals;
+
 
     virtual void accept(Visitor& visitor) override;
 private:
     std::string _name;
     std::vector<std::string> _parameter_list;
     Block* _block;
+    bool _is_native;
 };
 
 
@@ -246,7 +275,10 @@ private:
 class GlobalStatement : public Statement {
 public:
     GlobalStatement(std::vector<std::string> identifiers)
-        : _identifier_list(identifiers) {}
+        : _identifier_list(identifiers) {
+        is_global_statement = true
+            ;
+    }
     virtual void accept(Visitor& visitor) override;
 
     std::vector<std::string> getIdentifiers() {
@@ -347,7 +379,7 @@ private:
 class IfStatement : public Statement {
 public:
     IfStatement(Expression* _expression, Block* _block)
-        : expression(_expression), block(_block) {}
+        : expression(_expression), block(_block), elseBlock(nullptr) {}
     IfStatement(Expression* _expression, Block* _block, Block *else_block)
         : expression(_expression), block(_block), elseBlock(else_block) {}
     Expression* expression;
@@ -415,6 +447,7 @@ private:
 
 class ReturnStatement : public Statement {
 public:
+    ReturnStatement() : expression(nullptr) {}
     ReturnStatement(Expression *_expression)
         : expression(_expression) {}
 

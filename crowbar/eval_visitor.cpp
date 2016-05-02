@@ -1,5 +1,19 @@
 #include "eval_visitor.h"
 
+EvalVisitor::EvalVisitor() {
+    init();
+}
+
+void EvalVisitor::init() {
+    addNativeFunction("print", native_print);
+}
+
+typedef CRBValue* (*NativeFunctionProc) (int, std::vector<CRBValue*>);
+void EvalVisitor::addNativeFunction(std::string name, NativeFunctionProc proc) {
+    Function* func = new Function(name, proc);
+    globalFunctionEnv[name] = func;
+}
+
 bool EvalVisitor::visitBoolExpr(Expression* expr) {
     expr->accept(*this);
     if (this->result->type != ValueType::BoolValue) {
@@ -16,11 +30,8 @@ CRBValue* EvalVisitor::getVariable(std::string variableName) {
             return localEnv[variableName];
         }
     }
-    if (!globalVariableDefinitions.empty()) {
-        std::set<std::string> globalNames = globalVariableDefinitions.back();
-        if (globalNames.find(variableName) != globalNames.end()) {
-            return globalVariableEnv[variableName];
-        }
+    if (globalVariableDefinitions.find(variableName) != globalVariableDefinitions.end()) {
+        return globalVariableEnv[variableName];
     }
     return nullptr;
 }
@@ -32,44 +43,82 @@ Function* EvalVisitor::getFunction(std::string functionName) {
     return nullptr;
 }
 
+typedef CRBValue* (Function::*ProcType) (int, std::vector<CRBValue*>);
+
 void EvalVisitor::visit(FunctionCall* functionCall) {
     std::string functionName = functionCall->getName();
     std::vector<Expression*> arguments = functionCall->getArguments();
 
     Function* function = getFunction(functionName);
-    if (!function) {
-        std::cout << "error: cannot find function definition:" << functionName << std::endl;
-        exit(1);
+    if (function) {
+        std::vector<std::string> parameterList = function->getParamerterList();
+
+        if (function->isNative()) {
+            std::vector<CRBValue *> argList;
+            for (std::vector<Expression*>::size_type i = 0; i < arguments.size(); i++) {
+                Expression* expr = arguments[i];
+                expr->accept(*this);
+                argList.push_back(this->getResult());
+            }
+          
+            function->_proc(argList.size(), argList);
+            /*
+            ProcType proc = function->getProc();
+            NativeFunctionProc proc = function->getProc();
+            if (proc) {
+                proc(argList.size(), argList);
+            }
+            */
+        }
+        else {
+            if (parameterList.size() != arguments.size()) {
+                std::cout << "error: mismatch arguments size for function " << functionName << std::endl;
+                exit(1);
+            }
+
+            VariableEnv variableEnv;
+            for (std::vector<Expression*>::size_type i = 0; i < arguments.size(); i++) {
+                Expression* expr = arguments[i];
+                expr->accept(*this);
+                variableEnv[parameterList[i]] = this->getResult();
+            }
+            std::vector<std::string> globalVals = function->global_vals;
+            isGlobalEnv = true;
+            for (std::string valName : globalVals) {
+                variableEnv[valName] = globalVariableEnv[valName];
+            }
+
+            localVariableEnvs.push_back(variableEnv);
+            bool originGlobalEnv = isGlobalEnv;
+            isGlobalEnv = false;
+
+            function->getBlock()->accept(*this);
+            variableEnv = localVariableEnvs.back();
+            for (std::string valName : globalVals) {
+                globalVariableEnv[valName] = variableEnv[valName]->copyOnce();
+            }
+
+            isGlobalEnv = originGlobalEnv;
+            localVariableEnvs.pop_back();
+        }
     }
-
-    std::vector<std::string> parameterList = function->getParamerterList();
-
-    if (parameterList.size() != arguments.size()) {
-        std::cout << "error: mismatch arguments size for function " << functionName << std::endl;
-        exit(1);
-    }
-
-    VariableEnv variableEnv;
-    for (std::vector<Expression*>::size_type i = 0; i < arguments.size(); i++) {
-        Expression* expr = arguments[i];
-        expr->accept(*this);
-        variableEnv[parameterList[i]] = this->getResult();
-    }
-
-    localVariableEnvs.push_back(variableEnv);
-
-    // evaluate function
-    bool originGlobalEnv = isGlobalEnv;
-    isGlobalEnv = false;
-    //function->accept(*this);
-    function->getBlock()->accept(*this);
-    isGlobalEnv = originGlobalEnv;
-
-    localVariableEnvs.pop_back();
 }
 
 void EvalVisitor::visit(Function* function) {
-    // 此处是FunctionDefinition的eval过程，向runtime注册一个函数 
+    Block* block = function->getBlock();
+    StatementList statements = block->getList();
+    for (auto iter = std::begin(statements); iter != std::end(statements);) {
+        if ((*iter)->is_global_statement) {
+            GlobalStatement* globalStatement = static_cast<GlobalStatement*>(*iter);
+            std::vector<std::string> identifiers = globalStatement->getIdentifiers();
+            function->global_vals = identifiers;
+            iter = statements.erase(iter);
+        }
+        else {
+            iter++;
+        }
+    }
+    // 向runtime注册一个函数 
     globalFunctionEnv[function->getName()] = function;
 }
 
@@ -99,10 +148,16 @@ void EvalVisitor::visit(BreakStatement* breakStatement) {
 }
 
 void EvalVisitor::visit(ReturnStatement* returnStatement) {
-    returnStatement->expression->accept(*this);
-    this->statementResult->~StatementResult();
-    this->statementResult = new StatementResult(StatementResultType::ReturnStatementResult, this->result);
-    this->result = nullptr; // delegate the expression's result to the statement
+    if (returnStatement->expression) {
+        returnStatement->expression->accept(*this);
+        this->statementResult->~StatementResult();
+        this->statementResult = new StatementResult(StatementResultType::ReturnStatementResult, this->result);
+    }
+    else {
+        this->statementResult->~StatementResult();
+        this->result = new CRBStringValue("undefined"); 
+        this->statementResult = new StatementResult(StatementResultType::ReturnStatementResult, nullptr);
+    }
 }
 
 void EvalVisitor::visit(ForStatement* forStatement) {
@@ -113,33 +168,41 @@ void EvalVisitor::visit(ForStatement* forStatement) {
 
     StatementResult* result;
     CRBValue* condResult;
-    bool condValue;
-    initExpr->accept(*this);
+    bool condValue = true;;
+    if (initExpr) {
+        initExpr->accept(*this);
+    }
     do {
-        block->accept(*this);
-        result = this->statementResult;
-        switch (result->type) {
-        case StatementResultType::BreakStatementResult:
-            this->statementResult = new StatementResult(StatementResultType::NormalStatementResult);
-            result->~StatementResult();
-            return;
-        case StatementResultType::ReturnStatementResult:
-            this->statementResult = new StatementResult(StatementResultType::ReturnStatementResult, this->result);
-            result->~StatementResult();
-            return;
-        default:
-            break;
+        if (block) {
+            block->accept(*this);
+            result = this->statementResult;
+            switch (result->type) {
+            case StatementResultType::BreakStatementResult:
+                this->statementResult = new StatementResult(StatementResultType::NormalStatementResult);
+                result->~StatementResult();
+                return;
+            case StatementResultType::ReturnStatementResult:
+                this->statementResult = new StatementResult(StatementResultType::ReturnStatementResult, this->result);
+                result->~StatementResult();
+                return;
+            default:
+                break;
+            }
         }
 
-        actionExpr->accept(*this);
-
-        condExpr->accept(*this);
-        condResult = this->result;
-        if (condResult->type != ValueType::BoolValue) {
-            std::cout << "error: the eval result of cond expression in for-statement is not of type bool" << std::endl;
-            exit(1);
+        if (actionExpr) {
+            actionExpr->accept(*this);
         }
-        condValue = static_cast<CRBBoolValue*>(condResult)->value;
+
+        if (condExpr) {
+            condExpr->accept(*this);
+            condResult = this->result;
+            if (condResult->type != ValueType::BoolValue) {
+                std::cout << "error: the eval result of cond expression in for-statement is not of type bool" << std::endl;
+                exit(1);
+            }
+            condValue = static_cast<CRBBoolValue*>(condResult)->value;
+        }
     } while (condValue);
 
     this->statementResult = new StatementResult(StatementResultType::NormalStatementResult);
@@ -210,7 +273,7 @@ void EvalVisitor::visit(IfElseIfStatement *ifElseIfStatement) {
     auto exprNum = expressions.size();
     auto blockNum = blocks.size();
 
-    if (exprNum != blockNum || exprNum + 1 != blockNum) {
+    if (exprNum != blockNum && exprNum + 1 != blockNum) {
         std::cout << "mismatch of expression and block pair in if-else statement" << std::endl;
         exit(1);
     }
@@ -254,6 +317,16 @@ void EvalVisitor::visit(ElsIfList* elsIfList) {}
 
 void EvalVisitor::visit(TranslationUnit* transUnit) {
     std::vector<Node*> units = transUnit->getUnits();
+    // 先得到所有的function def
+    for (auto iter = std::begin(units); iter != std::end(units);) {
+        if ((*iter)->isFunction()) {
+            (*iter)->accept(*this);
+            iter = units.erase(iter);
+        }
+        else {
+            ++iter;
+        }
+    }
     for (auto iter = units.begin(); iter != units.end(); ++iter) {
         isGlobalEnv = true;
         (*iter)->accept(*this);
@@ -290,17 +363,16 @@ void EvalVisitor::visit(AssignExpression* assignExpr) {
         exit(1);
     }
 
-    CRBValue* value = getVariable(iden);
-
+    //CRBValue* value = getVariable(iden);
     if (isGlobalEnv) {
-        globalVariableEnv[iden] = this->result;
+        globalVariableDefinitions.insert(iden);
+        globalVariableEnv[iden] = this->result->copyOnce();
     }
     else {
         std::map<std::string, CRBValue*>& localEnv = localVariableEnvs.back();
-        localEnv[iden] = this->result;
+        localEnv[iden] = this->result->copyOnce();
     }
-
-    this->result = nullptr;
+    //this->result = nullptr;
 }
 
 void EvalVisitor::visit(BinaryExpression* binaryExpr) {
@@ -326,26 +398,26 @@ void EvalVisitor::visit(BinaryExpression* binaryExpr) {
     case BinaryOperator::ADD: 
     {
         if (leftType == ValueType::StringValue || rightType == ValueType::StringValue) {
-            delete this->result;
+            //delete this->result;
             this->result = new CRBStringValue(leftVal->toString() + rightVal->toString());
         }
         else {
-            delete this->result;
+            //delete this->result;
             this->result = new CRBDoubleValue(leftVal->toDouble() + rightVal->toDouble());
         }
         break;
     }
     case BinaryOperator::SUB:
-        delete this->result;
-        this->result = new CRBDoubleValue(leftVal->toDouble() + rightVal->toDouble());
+        //delete this->result;
+        this->result = new CRBDoubleValue(leftVal->toDouble() - rightVal->toDouble());
         break;
     case BinaryOperator::MUL:
-        delete this->result;
-        this->result = new CRBDoubleValue(leftVal->toDouble() + rightVal->toDouble());
+        //delete this->result;
+        this->result = new CRBDoubleValue(leftVal->toDouble() * rightVal->toDouble());
         break;
     case BinaryOperator::DIV:
     {
-        delete this->result;
+        //delete this->result;
         double lval = leftVal->toDouble();
         double rval = rightVal->toDouble();
         if (almost_equal(rval, 0.0, 2)) {
@@ -358,10 +430,10 @@ void EvalVisitor::visit(BinaryExpression* binaryExpr) {
     }
     case BinaryOperator::MOD:
     {
-        delete this->result;
+        //delete this->result;
         int lval = leftVal->toInt();
         int rval = rightVal->toInt();
-        if (rval = 0) {
+        if (rval == 0) {
             this->result = new CRBDoubleValue(std::nan("0"));
         }
         else {
@@ -370,72 +442,96 @@ void EvalVisitor::visit(BinaryExpression* binaryExpr) {
         break;
     }
     case BinaryOperator::AND:
-        delete this->result;
+        //delete this->result;
         this->result = new CRBBoolValue(leftVal->toBool() && rightVal->toBool());
         break;
     case BinaryOperator::OR:
-        delete this->result;
+        //delete this->result;
         this->result = new CRBBoolValue(leftVal->toBool() || rightVal->toBool());
         break;
     case BinaryOperator::LT:
     {
-        delete this->result;
-
-        double lval = leftVal->toDouble();
-        double rval = rightVal->toDouble();
-        if (std::isnan(lval) || std::isnan(rval)) {
-            this->result = new CRBBoolValue(false);
+        //delete this->result;
+        if (leftType == ValueType::StringValue || rightType == ValueType::StringValue) {
+            std::string lval = leftVal->toString();
+            std::string rval = rightVal->toString();
+            this->result = new CRBBoolValue(lval < rval);
         }
         else {
-            this->result = new CRBBoolValue(lval < rval);
+            double lval = leftVal->toDouble();
+            double rval = rightVal->toDouble();
+            if (std::isnan(lval) || std::isnan(rval)) {
+                this->result = new CRBBoolValue(false);
+            }
+            else {
+                this->result = new CRBBoolValue(lval < rval);
+            }
         }
         break;
     }
     case BinaryOperator::LE:
     {
-        delete this->result;
-
-        double lval = leftVal->toDouble();
-        double rval = rightVal->toDouble();
-        if (std::isnan(lval) || std::isnan(rval)) {
-            this->result = new CRBBoolValue(false);
+        //delete this->result;
+        if (leftType == ValueType::StringValue || rightType == ValueType::StringValue) {
+            std::string lval = leftVal->toString();
+            std::string rval = rightVal->toString();
+            this->result = new CRBBoolValue(lval <= rval);
         }
         else {
-            this->result = new CRBBoolValue(lval <= rval);
+            double lval = leftVal->toDouble();
+            double rval = rightVal->toDouble();
+            if (std::isnan(lval) || std::isnan(rval)) {
+                this->result = new CRBBoolValue(false);
+            }
+            else {
+                this->result = new CRBBoolValue(lval <= rval);
+            }
         }
         break;
     }
     case BinaryOperator::GT:
     {
-        delete this->result;
-
-        double lval = leftVal->toDouble();
-        double rval = rightVal->toDouble();
-        if (std::isnan(lval) || std::isnan(rval)) {
-            this->result = new CRBBoolValue(false);
+        //delete this->result;
+        if (leftType == ValueType::StringValue || rightType == ValueType::StringValue) {
+            std::string lval = leftVal->toString();
+            std::string rval = rightVal->toString();
+            this->result = new CRBBoolValue(lval > rval);
         }
         else {
-            this->result = new CRBBoolValue(lval > rval);
+            double lval = leftVal->toDouble();
+            double rval = rightVal->toDouble();
+            if (std::isnan(lval) || std::isnan(rval)) {
+                this->result = new CRBBoolValue(false);
+            }
+            else {
+                this->result = new CRBBoolValue(lval > rval);
+            }
         }
         break;
     }
     case BinaryOperator::GE:
     {
-        delete this->result;
-
-        double lval = leftVal->toDouble();
-        double rval = rightVal->toDouble();
-        if (std::isnan(lval) || std::isnan(rval)) {
-            this->result = new CRBBoolValue(false);
+        //delete this->result;
+        if (leftType == ValueType::StringValue || rightType == ValueType::StringValue) {
+            std::string lval = leftVal->toString();
+            std::string rval = rightVal->toString();
+            this->result = new CRBBoolValue(lval >= rval);
         }
         else {
-            this->result = new CRBBoolValue(lval >= rval);
+            double lval = leftVal->toDouble();
+            double rval = rightVal->toDouble();
+            if (std::isnan(lval) || std::isnan(rval)) {
+                this->result = new CRBBoolValue(false);
+            }
+            else {
+                this->result = new CRBBoolValue(lval >= rval);
+            }
         }
         break;
     }
     case BinaryOperator::EQ:
     {
-        delete this->result;
+        //delete this->result;
 
         if (leftType != rightType) {
             this->result = new CRBBoolValue(false);
@@ -460,7 +556,7 @@ void EvalVisitor::visit(BinaryExpression* binaryExpr) {
     }
     case BinaryOperator::NE:
     {
-        delete this->result;
+        //delete this->result;
 
         if (leftType != rightType) {
             this->result = new CRBBoolValue(true);
@@ -486,6 +582,8 @@ void EvalVisitor::visit(BinaryExpression* binaryExpr) {
     default:
         break;
     }
+    delete leftVal;
+    delete rightVal;
 }
 
 void EvalVisitor::visit(UnaryExpression* unaryExpr) {
@@ -497,14 +595,15 @@ void EvalVisitor::visit(UnaryExpression* unaryExpr) {
 
     switch (op) {
     case UnaryOperator::NEGATIVE:
-        delete this->result;
+        //delete this->result;
         this->result = new CRBDoubleValue(-val->toDouble());
         break;
     case UnaryOperator::NOT:
-        delete this->result;
+        //delete this->result;
         this->result = new CRBBoolValue(!val->toBool());
         break;
     }
+    delete val;
 }
 
 void EvalVisitor::visit(Primitive* primitive) {
@@ -538,15 +637,22 @@ void EvalVisitor::visit(IdentifierExpression* idenExpr) {
     std::string identifier = idenExpr->getIdentifier();
 
     CRBValue* val = getVariable(identifier);
-    this->result = val->copyOnce();
+    if (val) {
+        this->result = val->copyOnce();
+    }
+    else {
+        this->result = new CRBStringValue("undefined");
+    }
 }
 
 void EvalVisitor::visit(ExpressionStatement* statement) {
     Expression* expr = statement->getExpression();
     expr->accept(*this);
+    this->statementResult = new StatementResult(StatementResultType::NormalStatementResult);
 }
 
 void EvalVisitor::visit(GlobalStatement* globalStatement) {
+/*
     std::vector<std::string> identifiers = globalStatement->getIdentifiers();
     std::set<std::string> env = globalVariableDefinitions.back();
     for (int i = 0; i < identifiers.size(); i++) {
@@ -555,4 +661,6 @@ void EvalVisitor::visit(GlobalStatement* globalStatement) {
             env.insert(iden);
         }
     }
+    this->statementResult = new StatementResult(StatementResultType::NormalStatementResult);
+*/
 }

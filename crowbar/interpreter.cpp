@@ -7,7 +7,6 @@ Interpreter::Interpreter(Node* node) {
     evalVisitor = new EvalVisitor();
 }
 
-
 Interpreter* Interpreter::createInterpreter(Node* node) {
     Interpreter* _interpreter = new Interpreter(node);
     return _interpreter;
@@ -20,6 +19,16 @@ void Interpreter::interpret() {
     }
 
     std::vector<Node*> units = translationUnit->getUnits();
+    for (auto iter = std::begin(units); iter != std::end(units);) {
+        if ((*iter)->isFunction()) {
+            (*iter)->accept(*(this->evalVisitor));
+            iter = units.erase(iter);
+        }
+        else {
+            ++iter;
+        }
+    }
+
     std::for_each(
         units.begin(), 
         units.end(), 
@@ -27,7 +36,7 @@ void Interpreter::interpret() {
             node->accept(*(this->evalVisitor));
             CRBValue* value = this->evalVisitor->getResult();
             if (value) {
-                std::cout << value->toString();
+                //std::cout << value->toString();
             }
         }
     );
